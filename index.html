@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sistema Profesional Automotriz AUTEMEC</title>
+<div class="container-center">
+  <h5>Hecho por: Ing. Limbert Lipiri Villca</h5>
+  <h6>Taller de mecanica Automotriz AUTEMEC, ubicacion en Challapata Bolivia calle La paz entre pasaje Linarez</h6>
+</div>
+
+<!-- BOOTSTRAP -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+body{
+  background:#0e0f13;
+  color:white;
+}
+
+h1{
+  color:#00ffcc;
+  text-align:center;
+  margin:20px 0;
+}
+
+.panel{
+  background:#1b1f27;
+  border-radius:10px;
+  padding:15px;
+  height:80vh;
+  overflow:auto;
+}
+
+label{
+  display:block;
+  padding:6px;
+  border-bottom:1px solid #333;
+  cursor:pointer;
+}
+
+label:hover{background:#222;}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  background:#00cc88;
+  border:none;
+  color:white;
+  font-size:18px;
+  border-radius:8px;
+}
+
+.sensor{
+  background:#222;
+  margin-top:15px;
+  padding:15px;
+  border-radius:10px;
+  border-left:5px solid #00ffcc;
+}
+
+.codigo{color:#ffcc00;}
+small{color:#aaa;}
+.coins{color:#00ffcc;}
+pre{white-space:pre-wrap; color:#ddd;}
+</style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+<h1>SISTEMA PROFESIONAL AUTOMOTRIZ PRO</h1>
+
+<div class="row g-3">
+
+<!-- SINTOMAS -->
+<div class="col-12 col-lg-6">
+  <div class="panel">
+    <h4>Síntomas</h4>
+    <div id="sintomas"></div>
+    <button onclick="diagnosticar()">DIAGNOSTICAR</button>
+  </div>
+</div>
+
+<!-- RESULTADOS -->
+<div class="col-12 col-lg-6">
+  <div class="panel">
+    <h4>RESULTADOS</h4>
+    <div id="resultado"></div>
+  </div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+/* ================= SÍNTOMAS ================= */
+
+const listaSintomas = [
+"no_arranca","arranque_largo","jalonea","ralenti_inestable",
+"perdida_potencia","consume_mucho","humo_negro",
+"explosiones_escape","explosiones_admision","se_ahoga",
+"vibra_mucho","falla_frio","falla_caliente","se_apaga",
+"no_acelera","modo_emergencia","cascabelea",
+"ventilador_prendido","caja_golpea","abs_falla",
+"scanner_no_comunica","sin_chispa","sin_inyeccion",
+"voltaje_5v","senal_inestable","olor_gasolina",
+"tacometro_no","velocimetro_falla","rpm_altas",
+"tablero_loco","tironea_acelerando","humo_azul",
+"olor_quemado","falla_en_subida","apagones_intermitentes",
+"consumo_excesivo_combustible","ralenti_alto","ralenti_bajo",
+"mezcla_pobre","mezcla_rica","sobrecalentamiento",
+"baja_presion_combustible","alta_presion_combustible",
+"falla_electronica_general"
+];
+/* ================= SENSORES Y ACTUADORES ================= */
+
+const sensores = [
+
+{
+nombre:"CKP Cigüeñal",
+dtc:"P0335-P0339",
+clave:["no_arranca","sin_chispa","sin_inyeccion","tacometro_no","se_apaga"],
+clave_diagnostica:`•	Sensor CKP inductivo
+•	Sensor CKP Hall
+•	Ubicación típica cerca polea/cigüeñal
+________________________________________
+Qué controla
+•	RPM motor
+•	Sincronización chispa
+•	Sincronización inyección
+•	Referencia principal ECU
+________________________________________
+Síntomas comunes
+•	No arranca
+•	Se apaga caliente
+•	Jalones fuertes
+•	Explosiones
+•	Sin chispa
+•	Sin inyección
+•	Tacómetro cae a cero
+•	Arranque largo
+________________________________________
+Cómo se siente manejando
+•	Parece que cortaran corriente.
+•	El motor se apaga seco.
+•	Tacómetro cae instantáneamente.
+•	Puede volver a arrancar al enfriar.
+•	En carretera parece apagón eléctrico.
+________________________________________
+Cómo diferenciarlo
+Diferencia con CMP
+CKP:
+•	normalmente no deja arrancar
+•	pierde chispa e inyección juntas
+CMP:
+•	generalmente sí arranca
+•	tarda mucho en arrancar
+Diferencia con bomba combustible
+CKP:
+•	tacómetro cae
+•	pierde chispa
+Bomba:
+•	sigue existiendo RPM
+•	bujías salen secas
+________________________________________
+Cómo medir
+Con multímetro
+Sensor Hall:
+•	alimentación 5V
+•	tierra correcta
+•	señal pulsante
+Sensor inductivo:
+•	medir resistencia
+•	normalmente entre 200 y 1500 ohm
+________________________________________
+Señal osciloscopio
+Sensor Hall:
+•	onda cuadrada
+•	0V a 5V
+Sensor inductivo:
+•	onda senoidal
+•	amplitud variable según RPM
+📷 Colocar imagen señal correcta CKP. 📷 Colocar imagen señal CKP defectuosa.
+________________________________________
+Códigos DTC comunes
+•	P0335
+•	P0336
+•	P0337
+•	P0338
+•	P0339
+________________________________________
+Qué revisar antes de cambiarlo
+•	cableado
+•	limaduras metálicas
+•	distancia reluctor
+•	sincronización
+•	alimentación ECU
+•	señal osciloscopio
+________________________________________
+Clave principal
+👉 Si el tacómetro cae a cero mientras el motor gira, sospechar CKP.
+
+`
+},
+
+{
+nombre:"CMP Árbol levas",
+dtc:"P0340-P0343",
+clave:["arranque_largo","falla_caliente"],
+clave_diagnostica:`Qué controla
+•	sincronización cilindros
+•	inyección secuencial
+•	tiempo variable VVT
+________________________________________
+Síntomas comunes
+•	arranque largo
+•	pérdida fuerza
+•	jalones medios
+•	falla caliente
+•	explosiones leves
+•	modo emergencia
+________________________________________
+Cómo se siente manejando
+•	El motor parece fuera de tiempo.
+•	Le cuesta responder.
+•	Arranca después varios intentos.
+•	En subida pierde fuerza.
+•	Puede fallar más caliente.
+________________________________________
+Cómo diferenciarlo
+Diferencia con CKP
+CMP:
+•	normalmente sí arranca
+•	tarda mucho
+CKP:
+•	normalmente no arranca
+Diferencia con VVT
+CMP:
+•	afecta más arranque
+VVT:
+•	afecta más altas RPM
+________________________________________
+Cómo medir
+•	verificar 5V
+•	verificar tierra
+•	revisar señal cuadrada
+•	revisar sincronización CKP/CMP
+________________________________________
+Señal osciloscopio
+•	onda cuadrada estable
+•	sincronizada con CKP
+•	sin cortes
+📷 Señal correcta CMP. 📷 Señal defectuosa CMP.
+________________________________________
+Códigos DTC comunes
+•	P0340
+•	P0341
+•	P0342
+•	P0343
+________________________________________
+Clave principal
+👉 Arranca largo pero normalmente sí logra arrancar.
+
+`
+},
+
+{
+nombre:"MAF Aire",
+dtc:"P0100-P0104",
+clave:["humo_negro","consume_mucho","se_ahoga"],
+clave_diagnostica:`Qué controla
+•	cantidad aire admisión
+•	mezcla aire/combustible
+________________________________________
+Síntomas comunes
+•	humo negro
+•	consumo alto
+•	ahogo
+•	pérdida potencia
+•	jalones
+•	explosiones escape
+________________________________________
+Cómo se siente manejando
+•	Se ahoga acelerando.
+•	Huele gasolina.
+•	Humo negro.
+•	No desarrolla.
+•	En subida empeora.
+________________________________________
+Cómo diferenciarlo
+Diferencia con presión combustible
+MAF:
+•	humo negro
+•	mezcla rica
+Combustible:
+•	bujías blancas
+•	mezcla pobre
+Diferencia con O2
+MAF:
+•	falla incluso frío
+O2:
+•	falla más caliente
+________________________________________
+Cómo medir
+•	alimentación 12V o 5V
+•	tierra buena
+•	señal variable acelerando
+Valores aproximados:
+•	ralentí: 2 a 7 g/s
+•	acelerando aumenta progresivamente
+________________________________________
+Señal osciloscopio
+•	señal estable
+•	aumento suave acelerando
+•	sin cortes
+📷 Señal correcta MAF. 📷 Señal MAF contaminado.
+________________________________________
+Códigos DTC comunes
+•	P0100
+•	P0101
+•	P0102
+•	P0103
+•	P0104
+________________________________________
+Clave principal
+👉 Desconectando el MAF muchas veces el motor mejora inmediatamente.
+
+`
+},
+
+{
+nombre:"MAP Presión",
+dtc:"P0105-P0109",
+clave:["falla_en_subida","perdida_potencia"],
+clave_diagnostica:`________________________________________
+Qué controla
+•	vacío motor
+•	carga motor
+•	cálculo combustible
+________________________________________
+Síntomas comunes
+•	ahogo
+•	pérdida potencia
+•	jalones
+•	consumo alto
+•	explosiones leves
+________________________________________
+Cómo se siente manejando
+•	Parece poca gasolina.
+•	En subida empeora.
+•	En carga falla más.
+•	Ralentí puede verse normal.
+________________________________________
+Cómo diferenciarlo
+Diferencia con MAF
+MAP:
+•	falla más en carga
+•	menos humo negro
+MAF:
+•	humo negro evidente
+Diferencia con catalizador
+MAP:
+•	cálculo incorrecto carga
+Catalizador:
+•	escape muy caliente
+•	RPM amarradas
+________________________________________
+Cómo medir
+•	referencia 5V
+•	tierra
+•	señal variable según vacío
+Voltajes aproximados:
+•	ralentí: 1V a 1.5V
+•	aceleración: aumenta
+________________________________________
+Señal osciloscopio
+•	señal suave
+•	responde instantáneamente acelerando
+📷 Señal correcta MAP. 📷 Señal MAP defectuosa.
+________________________________________
+Códigos DTC comunes
+•	P0105
+•	P0106
+•	P0107
+•	P0108
+•	P0109
+________________________________________
+Clave principal
+👉 Falla especialmente en subida y carga.
+
+`
+},
+
+{
+nombre:"TPS Acelerador",
+dtc:"P0120-P0124",
+clave:["no_acelera","modo_emergencia","rpm_altas"],
+clave_diagnostica:`Qué controla
+•	apertura acelerador
+•	carga motor
+•	cambios transmisión
+________________________________________
+Síntomas comunes
+•	jalones
+•	RPM acelerada
+•	caja golpea
+•	no acelera
+•	modo emergencia
+________________________________________
+Cómo se siente manejando
+•	Aceleración irregular.
+•	Tirones acelerando.
+•	RPM queda acelerada.
+•	Cambios bruscos.
+________________________________________
+Cómo diferenciarlo
+Diferencia con APP
+TPS:
+•	falla mariposa
+•	RPM extrañas
+APP:
+•	pedal no responde
+________________________________________
+Cómo medir
+•	referencia 5V
+•	tierra
+•	señal progresiva
+Voltaje:
+•	cerrado: 0.5V aprox
+•	abierto: 4.5V aprox
+Debe subir suave.
+________________________________________
+Señal osciloscopio
+•	línea progresiva
+•	sin saltos
+•	sin huecos
+📷 Señal TPS correcta. 📷 Señal TPS con cortes.
+________________________________________
+Códigos DTC comunes
+•	P0120
+•	P0121
+•	P0122
+•	P0123
+•	P0124
+________________________________________
+Clave principal
+👉 Falla exactamente cuando mueve acelerador.
+
+`
+},
+
+{
+nombre:"ECT Temperatura",
+dtc:"P0115-P0119",
+clave:["falla_frio","falla_caliente","sobrecalentamiento","ventilador_prendido"],
+clave_diagnostica:`Qué controla
+•	enriquecimiento mezcla
+•	ventiladores
+•	arranque frío
+________________________________________
+Síntomas comunes
+•	consumo alto
+•	humo negro
+•	ventilador raro
+•	arranque difícil
+•	ahogo
+________________________________________
+Cómo se siente manejando
+•	Parece choke pegado.
+•	Huele gasolina.
+•	Consume demasiado.
+•	Ventilador prende raro.
+________________________________________
+Cómo diferenciarlo
+Diferencia con O2
+ECT:
+•	falla desde frío
+O2:
+•	falla más caliente
+Diferencia con termostato
+ECT:
+•	lectura errónea escáner
+Termostato:
+•	temperatura real incorrecta
+________________________________________
+Cómo medir
+Sensor NTC:
+•	resistencia cambia con temperatura
+Frío:
+•	resistencia alta
+Caliente:
+•	resistencia baja
+________________________________________
+Señal osciloscopio
+•	normalmente señal estable
+•	variación gradual
+________________________________________
+Códigos DTC comunes
+•	P0115
+•	P0116
+•	P0117
+•	P0118
+•	P0119
+________________________________________
+Clave principal
+👉 Ventilador trabajando raro + consumo exagerado.
+
+`
+},
+
+{
+nombre:"IAT Aire admisión",
+dtc:"P0110-P0113",
+clave:["consume_mucho","humo_negro","ralenti_inestable"],
+clave_diagnostica:`
+- Mezcla rica/pobre
+- Sensor engaña ECU
+- Diferencia ECT: aire vs refrigerante
+`
+},
+
+{
+nombre:"O2 Lambda",
+dtc:"P0130-P0172",
+clave:["humo_negro","mezcla_rica","mezcla_pobre"],
+clave_diagnostica:`Qué controla
+•	corrección mezcla
+•	eficiencia combustión
+________________________________________
+Síntomas comunes
+•	consumo alto
+•	humo negro
+•	jalones
+•	olor gasolina
+•	ahogo
+________________________________________
+Cómo se siente manejando
+•	Frío trabaja bien.
+•	Caliente empieza fallar.
+•	Olor fuerte gasolina.
+________________________________________
+Cómo diferenciarlo
+Diferencia con MAF
+O2:
+•	falla más caliente
+MAF:
+•	falla todo el tiempo
+________________________________________
+Cómo medir
+Sensor convencional:
+•	oscila 0.1V a 0.9V
+Debe variar rápido.
+________________________________________
+Señal osciloscopio
+•	oscilación rápida
+•	cambios constantes
+📷 Señal O2 correcta. 📷 Señal O2 lenta.
+________________________________________
+Códigos DTC comunes
+•	P0130
+•	P0131
+•	P0132
+•	P0133
+•	P0134
+•	P0171
+•	P0172
+________________________________________
+Clave principal
+👉 Falla más cuando el motor ya calentó.
+
+`
+},
+
+{
+nombre:"Knock Sensor",
+dtc:"P0325-P0332",
+clave:["cascabelea","perdida_potencia"],
+clave_diagnostica:`Síntomas comunes
+•	cascabelea
+•	poca fuerza
+•	motor pesado
+________________________________________
+Cómo se siente manejando
+•	Cascabelea subiendo.
+•	ECU retrasa avance.
+•	Respuesta lenta.
+________________________________________
+Cómo diferenciarlo
+Knock:
+•	cascabeleo metálico típico
+Combustible:
+•	menos control avance
+________________________________________
+Códigos DTC
+•	P0325
+•	P0326
+•	P0327
+•	P0328
+________________________________________
+Clave principal
+👉 Cascabelea especialmente bajo carga.
+
+`
+},
+
+{
+nombre:"VSS Velocidad",
+dtc:"P0500-P0503",
+clave:["velocimetro_falla","caja_golpea"],
+clave_diagnostica:`Síntomas comunes
+•	caja golpea
+•	velocímetro falla
+•	cambios extraños
+•	modo emergencia
+________________________________________
+Cómo diferenciarlo
+VSS:
+•	velocímetro también falla
+TPS:
+•	más relacionado aceleración
+________________________________________
+Códigos DTC
+•	P0500
+•	P0501
+•	P0502
+•	P0503
+________________________________________
+Clave principal
+👉 Velocímetro y caja fallan juntos.
+=======================================================================
+`
+},
+
+{
+nombre:"ABS rueda",
+dtc:"C0035-C0045",
+clave:["abs_falla","caja_golpea"],
+clave_diagnostica:`
+- Luz ABS encendida
+- Falla en frenado
+- Diferencia VSS: rueda individual
+`
+},
+
+{
+nombre:"Presión combustible",
+dtc:"P0190-P0193",
+clave:["baja_presion_combustible","alta_presion_combustible"],
+clave_diagnostica:`Qué controla
+•	presión combustible
+•	caudal combustible
+________________________________________
+Síntomas comunes
+•	ahogo
+•	no desarrolla
+•	jalones
+•	arranque difícil
+•	apagones
+________________________________________
+Cómo se siente manejando
+•	En ralentí puede trabajar normal.
+•	Acelerando fuerte pierde fuerza.
+•	En subida empeora.
+•	Tironea carretera.
+________________________________________
+Cómo diferenciarlo
+Diferencia con MAF
+Combustible:
+•	mezcla pobre
+•	bujías blancas
+•	bomba se escucha débil
+MAF:
+•	humo negro
+•	mezcla rica
+Diferencia con catalizador
+Combustible:
+•	parece quedarse sin fuerza
+Catalizador:
+•	RPM amarradas permanentemente
+________________________________________
+Cómo medir
+•	usar manómetro combustible
+•	verificar presión ralentí
+•	verificar presión acelerando
+________________________________________
+Valores aproximados
+Multipunto:
+•	35 a 60 PSI
+Directa:
+•	mucho mayor según sistema
+________________________________________
+Códigos DTC comunes
+•	P0087
+•	P0088
+•	P0190
+•	P0191
+•	P0192
+•	P0193
+________________________________________
+Clave principal
+👉 La bomba puede escucharse débil o cambiar sonido bajo carga.
+
+`
+},
+
+/* ACTUADORES */
+
+{
+nombre:"Inyectores",
+dtc:"P0200-P0204",
+clave:["vibra_mucho","humo_negro","olor_gasolina"],
+clave_diagnostica:`
+Síntomas comunes
+•	vibración
+•	humo negro
+•	cilindro muerto
+•	bujía mojada
+________________________________________
+Cómo diferenciarlo
+Inyector:
+•	falla cilindro específico
+Bobina:
+•	explosiones más fuertes
+________________________________________
+Códigos DTC
+•	P0200
+•	P0201
+•	P0202
+•	P0203
+•	P0204
+________________________________________
+Clave principal
+👉 Un cilindro específico falla constantemente.
+
+`
+},
+
+{
+nombre:"Bobinas",
+dtc:"P0350-P0354",
+clave:["sin_chispa","explosiones_escape"],
+clave_diagnostica:`
+Síntomas comunes
+•	misfire
+•	explosiones
+•	jalones fuertes
+•	vibración
+________________________________________
+Cómo se siente manejando
+•	Más falla acelerando.
+•	Explosiones escape.
+•	Jalones bajo carga.
+________________________________________
+Cómo diferenciarlo
+Bobina:
+•	explosiones frecuentes
+•	falla carga fuerte
+Inyector:
+•	olor gasolina más fuerte
+________________________________________
+Códigos DTC
+•	P0350
+•	P0351
+•	P0352
+•	P0353
+•	P0354
+________________________________________
+Clave principal
+👉 Falla mucho más bajo carga o subida.
+
+`
+},
+
+{
+nombre:"IAC ralentí",
+dtc:"P0505-P0507",
+clave:["ralenti_inestable","se_apaga"],
+clave_diagnostica:`Qué controla
+•	RPM ralentí
+•	compensación carga motor
+________________________________________
+Síntomas comunes
+•	RPM sube y baja
+•	apagones ralentí
+•	ralentí acelerado
+•	vibración
+________________________________________
+Cómo se siente manejando
+•	En semáforo acelera sola.
+•	Puede apagarse desacelerando.
+•	Empeora con A/C.
+________________________________________
+Cómo diferenciarlo
+TPS:
+•	falla moviendo pedal
+IAC:
+•	falla sin tocar acelerador
+________________________________________
+Códigos DTC
+•	P0505
+•	P0506
+•	P0507
+________________________________________
+Clave principal
+👉 RPM cambia sola en ralentí.
+
+`
+},
+
+{
+nombre:"EGR",
+dtc:"P0400-P0406",
+clave:["ralenti_inestable","explosiones_admision"],
+clave_diagnostica:`📷 Válvula EGR electrónica. 📷 Sensor posición EGR. 📷 Ubicación múltiple admisión.
+________________________________________
+Qué controla
+•	recirculación gases escape
+•	reducción emisiones NOx
+•	temperatura combustión
+________________________________________
+Síntomas comunes
+•	ralentí inestable
+•	ahogo
+•	explosiones
+•	pérdida potencia
+•	humo negro
+•	apagones
+•	vibración
+________________________________________
+Cómo se siente manejando
+•	Parece fuga vacío.
+•	Tiembla bastante ralentí.
+•	Se ahoga saliendo.
+•	En subida pierde fuerza.
+•	Explosiones admisión.
+________________________________________
+Cómo diferenciarlo
+Diferencia con vacío falso
+EGR:
+•	mejora tapándola
+•	humo y explosiones frecuentes
+Vacío:
+•	RPM altas constantes
+Diferencia con MAF
+EGR:
+•	tiembla más ralentí
+MAF:
+•	humo negro más fuerte
+________________________________________
+Cómo medir
+•	revisar carbonización
+•	revisar movimiento válvula
+•	revisar posición EGR
+•	verificar alimentación
+________________________________________
+Señal osciloscopio
+•	señal posición estable
+•	apertura progresiva
+📷 Señal EGR correcta. 📷 Señal EGR defectuosa.
+________________________________________
+Códigos DTC comunes
+•	P0400
+•	P0401
+•	P0402
+•	P0403
+•	P0404
+•	P0405
+________________________________________
+Clave principal
+👉 Parece una fuga de vacío fuerte y mejora tapando la EGR.
+
+`
+},
+
+{
+nombre:"EVAP",
+dtc:"P0440-P0455",
+clave:["olor_gasolina","arranque_largo"],
+clave_diagnostica:`
+📷 Válvula purga EVAP. 📷 Sensor FTP. 📷 Canister EVAP.
+________________________________________
+Qué controla
+•	vapores combustible
+•	presión tanque
+•	purga vapores
+________________________________________
+Síntomas comunes
+•	olor gasolina
+•	ahogo
+•	arranque largo
+•	ralentí inestable
+•	mezcla rica
+•	humo negro leve
+________________________________________
+Cómo se siente manejando
+•	Falla después cargar combustible.
+•	Olor fuerte gasolina.
+•	Se ahoga arrancando.
+•	Ralentí irregular.
+________________________________________
+Cómo diferenciarlo
+Diferencia con MAF
+EVAP:
+•	falla tras cargar gasolina
+•	olor combustible muy fuerte
+MAF:
+•	humo negro más evidente
+Diferencia con combustible
+EVAP:
+•	falla intermitente
+Combustible:
+•	pérdida potencia constante
+________________________________________
+Cómo medir
+•	revisar si válvula queda abierta
+•	verificar vacío indebido
+•	revisar FTP
+•	activar con escáner
+________________________________________
+Señal osciloscopio
+•	activación pulsante PWM
+📷 Señal EVAP correcta. 📷 Señal EVAP defectuosa.
+________________________________________
+Códigos DTC comunes
+•	P0440
+•	P0441
+•	P0442
+•	P0443
+•	P0446
+•	P0455
+________________________________________
+Clave principal
+👉 Falla mucho después de cargar combustible.
+
+`
+},
+
+{
+nombre:"Bomba combustible",
+dtc:"P0087-P0193",
+clave:["no_arranca","baja_presion_combustible"],
+clave_diagnostica:`
+- Sin presión gasolina
+- Falla en subida
+- Diferencia inyector: presión
+`
+},
+
+{
+nombre:"Mariposa electrónica",
+dtc:"P2100-P2118",
+clave:["no_acelera","modo_emergencia"],
+clave_diagnostica:`Síntomas comunes
+•	no acelera
+•	modo emergencia
+•	RPM limitadas
+•	aceleración rara
+________________________________________
+Cómo diferenciarlo
+APP:
+•	problema entrada pedal
+Mariposa:
+•	problema actuador cuerpo aceleración
+________________________________________
+Códigos DTC
+•	P2100
+•	P2101
+•	P2110
+•	P2118
+•	P2176
+________________________________________
+Clave principal
+👉 Entra modo emergencia y limita RPM.
+
+`
+},
+
+{
+nombre:"Alternador",
+dtc:"P0560",
+clave:["tablero_loco","apagones_intermitentes"],
+clave_diagnostica:`
+Síntomas comunes
+•	tablero loco
+•	apagones
+•	errores múltiples
+•	batería descarga
+________________________________________
+Cómo diferenciarlo
+Alternador:
+•	voltaje bajo afecta todo
+Sensor:
+•	falla específica
+________________________________________
+Cómo medir
+•	ralentí: 13.5V a 14.5V
+•	revisar caída voltaje
+________________________________________
+Clave principal
+👉 Muchas fallas eléctricas simultáneas.
+
+`
+},
+
+{
+nombre:"Relé ECU",
+dtc:"N/A",
+clave:["scanner_no_comunica","no_arranca"],
+clave_diagnostica:`Síntomas comunes
+•	apagones
+•	no arranca
+•	ECU muerta
+•	escáner no comunica
+________________________________________
+Cómo diferenciarlo
+Relé:
+•	corta alimentación ECU completa
+CKP:
+•	afecta sincronización RPM
+________________________________________
+Clave principal
+👉 Se corta todo como si apagaran llave.
+`
+},
+
+{
+nombre:"APP Pedal Electrónico",
+dtc:"P2120-P2127",
+clave:[
+"no_acelera",
+"modo_emergencia",
+"rpm_altas",
+"senal_inestable"
+],
+clave_diagnostica:`
+Síntomas comunes
+• no acelera
+• modo emergencia activo
+• RPM limitadas
+
+________________________________________
+
+Cómo diferenciarlo
+APP:
+• el pedal no responde o responde tarde
+• la señal del pedal es errática o intermitente
+
+TPS / Mariposa:
+• la mariposa responde mal o se queda abierta/cerrada
+• el problema está en el cuerpo de aceleración
+
+________________________________________
+
+Códigos DTC
+• P2120
+• P2121
+• P2122
+• P2123
+• P2127
+
+________________________________________
+
+Clave principal
+👉 Pisa el pedal y el motor casi no responde o entra en modo protección.
+`}
+
+
+
+];
+
+/* ================= DIAGNÓSTICO ================= */
+
+const cont=document.getElementById("sintomas");
+
+listaSintomas.forEach(s=>{
+cont.innerHTML+=`
+<label class="text-light">
+<input type="checkbox" value="${s}">
+ ${s.replaceAll("_"," ")}
+</label>`;
+});
+
+/* ================= DIAGNÓSTICO ================= */
+
+function diagnosticar(){
+
+let seleccion=[...document.querySelectorAll("input:checked")].map(x=>x.value);
+
+let resultados=[];
+
+sensores.forEach(s=>{
+
+let match=[];
+
+seleccion.forEach(sym=>{
+if(s.clave.includes(sym)) match.push(sym);
+});
+
+if(match.length>0){
+resultados.push({...s,score:match.length,match});
+}
+
+});
+
+resultados.sort((a,b)=>b.score-a.score);
+
+let html="";
+
+resultados.forEach(r=>{
+html+=`
+<div class="sensor">
+<h5>${r.nombre}</h5>
+<div class="codigo">${r.dtc}</div>
+
+<small>Puntaje: ${r.score}</small>
+
+<div class="coins">
+Coincidencias: ${r.match.join(", ")}
+</div>
+
+<pre>${r.clave_diagnostica}</pre>
+
+</div>`;
+});
+
+document.getElementById("resultado").innerHTML =
+resultados.length ? html : "Sin coincidencias";
+}
+
+</script>
+
+</body>
+</html>
