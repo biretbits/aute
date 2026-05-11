@@ -210,20 +210,20 @@ const listaSintomas = [
 
     // --- Electrónica ---
     "codigo_correlacion_pedal","luz_aceite_encendida", "presion_aceite_baja", "zumbido_motor", "ruido_bielas", "falla_levas", "testigo_rojo", "marca_erratico", "sin_presion",
-"enciende_normal_luego_se_apaga","se_apaga_al_detener","falla_intermitente","check_engine","vibracion_se_disimula_al_acelerar"
-];
-const sensores = [
+"enciende_normal_luego_se_apaga","se_apaga_al_detener","falla_intermitente","check_engine","vibracion_se_disimula_al_acelerar",
+"motor_perezoso","check_engine_intermitente",
+];const sensores = [
         // --- GRUPO 1: SINCRONIZACIÓN Y TIEMPO ---
         {
             nombre: "Sensor CKP (Cigüeñal)",
             dtc: "P0335 - P0338",
-            clave: ["check_engine","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","no_arranca", "sin_chispa", "sin_inyeccion", "tacometro_no", "se_apaga", "apagones_intermitentes", "falla_caliente", "senal_erratica", "arranque_largo", "jalonea", "perdida_potencia", "ralenti_inestable", "misfire", "consume_mucho"],
+            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","no_arranca", "sin_chispa", "sin_inyeccion", "tacometro_no", "se_apaga", "apagones_intermitentes", "falla_caliente", "senal_erratica", "arranque_largo", "jalonea", "perdida_potencia", "ralenti_inestable", "misfire", "consume_mucho"],
             info: "LÓGICA: Si falla, la ECU no sabe que el motor gira. El tacómetro en 0 mientras das marcha es la prueba reina."
         },
         {
             nombre: "Sensor CMP (Árbol de Levas)",
             dtc: "P0340 - P0344",
-            clave: ["check_engine","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","arranque_largo", "perdida_potencia", "no_arranca", "jalonea", "misfire", "ralenti_inestable", "sincronizacion_perdida", "consumo_alto", "arranque_dificil", "modo_seguro", "falla_en_subida"],
+            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","arranque_largo", "perdida_potencia", "no_arranca", "jalonea", "misfire", "ralenti_inestable", "sincronizacion_perdida", "consumo_alto", "arranque_dificil", "modo_seguro", "falla_en_subida"],
             info: "LÓGICA: Sincroniza la secuencia de inyección. Sin él, la ECU 'adivina' el tiempo, causando pérdida de potencia al exigir carga."
         },
 
@@ -231,99 +231,99 @@ const sensores = [
         {
             nombre: "Sensor MAF (Flujo de Aire)",
             dtc: "P0100 - P0104",
-            clave: ["check_engine","falla_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","tiembla_en_recorrido", "humo_negro", "jalonea", "se_ahoga", "mezcla_pobre", "mezcla_rica", "perdida_potencia", "consume_alto", "ralenti_inestable", "se_apaga", "apagones_intermitentes", "respuesta_lenta_acelerador", "arranque_largo", "olor_gasolina", "misfire", "falla_en_subida"],
+            clave: ["check_engine","check_engine_intermitente","falla_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","rpm_suben_y_bajan","motor_perezoso","enciende_normal_luego_se_apaga","tiembla_en_recorrido", "humo_negro", "jalonea", "se_ahoga", "mezcla_pobre", "mezcla_rica", "perdida_potencia", "consumo_alto", "ralenti_inestable", "se_apaga", "apagones_intermitentes", "respuesta_lenta_acelerador", "arranque_largo", "olor_gasolina", "misfire", "falla_en_subida"],
             info: "LÓGICA: Mide el peso del aire que entra. Si falla, tiembla en parado y al acelerar la falla se disimula pero no desaparece."
         },
         {
               nombre: "Sensor MAP (Presión Absoluta)",
               dtc: "P0105 - P0109",
-              clave: ["check_engine","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","vibra_en_recorrido", "falla_en_subida", "motor_cabecea", "explosiones_admision", "perdida_potencia", "jalonea", "ralenti_inestable", "consumo_alto", "arranque_dificil", "se_apaga", "humo_negro", "mezcla_pobre", "mezcla_rica", "respuesta_lenta_acelerador", "misfire"],
+              clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","motor_perezoso","vibra_en_recorrido", "falla_en_subida", "motor_cabecea", "explosiones_admision", "perdida_potencia", "jalonea", "ralenti_inestable", "consumo_alto", "arranque_dificil", "se_apaga", "humo_negro", "mezcla_pobre", "mezcla_rica", "respuesta_lenta_acelerador", "misfire"],
               info: "LÓGICA: Mide el vacío en el múltiple. Es vital para calcular la mezcla y el avance del encendido, especialmente cuando el motor hace fuerza en subidas."
           },
           {
               nombre: "Sensor IAT (Temperatura de Aire)",
               dtc: "P0110 - P0113",
-              clave: ["check_engine","falla_frio", "consume_mucho", "mezcla_rica", "arranque_largo", "ralenti_inestable", "perdida_potencia", "mezcla_pobre", "arranque_dificil", "se_ahoga", "humo_negro", "respuesta_lenta_acelerador", "misfire", "se_apaga"],
+              clave: ["check_engine","check_engine_intermitente","falla_frio","motor_perezoso","consume_mucho", "mezcla_rica", "arranque_largo", "ralenti_inestable", "perdida_potencia", "mezcla_pobre", "arranque_dificil", "se_ahoga", "humo_negro", "respuesta_lenta_acelerador", "misfire", "se_apaga"],
               info: "LÓGICA: Mide la temperatura del aire para calcular su densidad. Si marca mal, la ECU ajusta mal la mezcla: en frío le falta gasolina y falla, en caliente puede enriquecer demasiado."
           },
         // --- GRUPO 3: COMBUSTIBLE Y PRESIÓN ---
         {
             nombre: "Sensor FRP (Presión del Riel)",
             dtc: "P0190 - P0193",
-            clave: ["check_engine","alta_presion_combustible", "baja_presion_combustible", "modo_emergencia", "jalonea", "no_arranca", "arranque_largo", "perdida_potencia", "se_apaga", "ralenti_inestable", "mezcla_pobre", "mezcla_rica", "misfire", "consumo_alto", "respuesta_lenta_acelerador"],
+            clave: ["check_engine","check_engine_intermitente","alta_presion_combustible", "baja_presion_combustible", "modo_emergencia", "jalonea", "no_arranca", "arranque_largo", "perdida_potencia","motor_perezoso", "se_apaga", "ralenti_inestable", "mezcla_pobre", "mezcla_rica", "misfire", "consumo_alto", "respuesta_lenta_acelerador"],
             info: "LÓGICA: El vigía de la inyección directa/common rail. Si reporta sobrepresión, la ECU corta potencia para evitar roturas."
         },
         {
             nombre: "Inyectores de Combustible (Actuador)",
             dtc: "P0200 - P0204",
-            clave: ["check_engine","tiembla_en_parado","vibracion_se_disimula_al_acelerar","falla_en_subida", "olor_gasolina", "humo_negro", "misfire", "perdida_potencia", "consume_mucho", "ralenti_inestable", "explosiones_escape", "arranque_dificil"],
+            clave: ["check_engine","check_engine_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","falla_en_subida", "olor_gasolina", "humo_negro", "misfire", "perdida_potencia", "consume_mucho", "ralenti_inestable", "explosiones_escape", "arranque_dificil"],
             info: "LÓGICA: Fallo de entrega. Si gotea hay humo negro; si no abre, el motor tiembla en parado y al acelerar la falla se disimula."
         },
         {
             nombre: "Bomba de Combustible (Actuador)",
             dtc: "P0087",
-            clave: ["check_engine","falla_intermitente","se_apaga_al_detener","falla_en_subida","enciende_normal_luego_se_apaga","baja_presion_combustible", "vibra_en_recorrido", "se_apaga", "perdida_potencia", "jalonea", "arranque_largo", "no_arranca", "motor_cabecea", "se_ahoga", "apagones_intermitentes", "respuesta_lenta_acelerador", "misfire", "consumo_alto"],
+            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","falla_en_subida","motor_perezoso","enciende_normal_luego_se_apaga","baja_presion_combustible", "vibra_en_recorrido", "se_apaga", "perdida_potencia", "jalonea", "arranque_largo", "no_arranca", "motor_cabecea", "se_ahoga", "apagones_intermitentes", "respuesta_lenta_acelerador", "misfire", "consumo_alto"],
             info: "LÓGICA: Falta de caudal. En alta demanda, la presión cae y el motor vibra por hambre de combustible."
         },
         {
             nombre: "Sensor ECT (Temperatura Refrigerante)",
             dtc: "P0115 - P0119",
-            clave: ["check_engine","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","falla_frio", "falla_caliente", "sobrecalentamiento", "ventilador_prendido", "consume_mucho", "arranque_dificil", "arranque_largo", "humo_negro", "mezcla_rica", "ralenti_inestable", "se_apaga", "temperatura_tablero_erratica", "misfire", "respuesta_lenta_acelerador"],
+            clave: ["check_engine","check_engine_intermitente","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","falla_frio", "falla_caliente", "sobrecalentamiento", "ventilador_prendido", "consume_mucho", "arranque_dificil", "arranque_largo", "humo_negro", "mezcla_rica", "ralenti_inestable", "se_apaga", "temperatura_tablero_erratica", "misfire", "respuesta_lenta_acelerador"],
             info: "LÓGICA: Es el 'estrangulador' electrónico. Si marca siempre frío, el auto se ahoga en gasolina cuando ya calentó."
         },
         {
             nombre: "Sensor de Detonación (Knock)",
             dtc: "P0325",
-            clave: ["check_engine","falla_en_subida","cascabelea", "perdida_potencia", "consumo_alto", "misfire", "ralenti_inestable"],
-            info: "LÓGICA: Escucha el picado de bielas. Si falla, la ECU no retrasa el tiempo y escuchas sonido metálico al hacer fuerza."
+            clave: ["check_engine","check_engine_intermitente","falla_en_subida","motor_perezoso","cascabelea", "perdida_potencia", "consumo_alto", "misfire", "ralenti_inestable"],
+            info: "LÓGICA: Escucha el picado de bielas. Si falla, la ECU no retrasa el tiempo y el motor se siente amarrado/perezoso."
         },
         {
             nombre: "Sonda Lambda (Oxígeno)",
             dtc: "P0130 - P0172",
-            clave: ["check_engine","tiembla_en_parado","vibracion_se_disimula_al_acelerar","rpm_suben_y_bajan","falla_en_subida","enciende_normal_luego_se_apaga","tiembla_en_recorrido", "consume_mucho", "mezcla_rica", "olor_gasolina", "mezcla_pobre", "humo_negro", "ralenti_inestable", "jalonea", "perdida_potencia", "misfire", "arranque_dificil"],
-            info: "LÓGICA: Corrige la mezcla en tiempo real. Si se vuelve lenta, tiembla en parado y al acelerar se disimula."
+            clave: ["check_engine","check_engine_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","rpm_suben_y_bajan","falla_en_subida","enciende_normal_luego_se_apaga","tiembla_en_recorrido", "consume_mucho", "mezcla_rica", "olor_gasolina", "mezcla_pobre", "humo_negro", "ralenti_inestable", "jalonea", "perdida_potencia", "misfire", "arranque_dificil"],
+            info: "LÓGICA: Corrige la mezcla en tiempo real. Si falla, la luz prende y apaga según la lectura."
         },
         {
             nombre: "Válvula EGR (Actuador)",
             dtc: "P0400 - P0406",
-            clave: ["check_engine","falla_en_subida","tiembla_en_parado", "se_apaga", "explosiones_admision", "ralenti_inestable", "perdida_potencia", "jalonea", "motor_cabecea", "se_ahoga", "consumo_alto", "olor_gasolina"],
-            info: "LÓGICA: Si se traba abierta, introduce gases quemados en ralentí, asfixiando la combustión y reduciendo la potencia en carga."
+            clave: ["check_engine","check_engine_intermitente","falla_en_subida","tiembla_en_parado","motor_perezoso","se_apaga", "explosiones_admision", "ralenti_inestable", "perdida_potencia", "jalonea", "motor_cabecea", "se_ahoga", "consumo_alto", "olor_gasolina"],
+            info: "LÓGICA: Si se traba abierta, introduce gases quemados en ralentí, asfixiando la combustión."
         },
         {
             nombre: "Sensor TPS (Posición de Mariposa)",
             dtc: "P0120 - P0124",
-            clave: ["check_engine","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","no_acelera", "tironea_acelerando", "jalonea", "rpm_altas", "ralenti_inestable", "aceleracion_erratica", "cambios_bruscos", "se_apaga", "consumo_alto"],
+            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","motor_perezoso","enciende_normal_luego_se_apaga","no_acelera", "tironea_acelerando", "jalonea", "rpm_altas", "ralenti_inestable", "aceleracion_erratica", "cambios_bruscos", "se_apaga", "consumo_alto"],
             info: "LÓGICA: Informa cuánto abriste el aire. Si tiene punto muerto, el auto da tirones violentos."
         },
         {
             nombre: "Sensor APP (Pedal Acelerador)",
             dtc: "P2120",
-            clave: ["check_engine","pedal_no_responde", "modo_emergencia", "no_acelera", "limitado_a_3000_rpm", "aceleracion_erratica", "cambios_bruscos", "se_apaga"],
-            info: "LÓGICA: Doble señal de seguridad. Si no coinciden, la ECU ignora el pedal para evitar accidentes."
+            clave: ["check_engine","check_engine_intermitente","pedal_no_responde","motor_perezoso", "modo_emergencia", "no_acelera", "limitado_a_3000_rpm", "aceleracion_erratica", "cambios_bruscos", "se_apaga"],
+            info: "LÓGICA: Doble señal de seguridad. Si no coinciden, la luz prende y apaga."
         },
         {
             nombre: "Válvula IAC (Actuador)",
             dtc: "P0505 - P0507",
-            clave: ["check_engine","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","tiembla_en_parado", "ralenti_inestable", "ralenti_bajo", "ralenti_alto", "rpm_altas", "se_apaga", "arranque_dificil", "falla_frio", "apagones_intermitentes", "falla_al_encender_accesorios", "humo_negro"],
-            info: "LÓGICA: Controla el aire en mínima. Si está sucia, las RPM suben y bajan solas o el motor se apaga al soltar el pedal."
+            clave: ["check_engine","check_engine_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","tiembla_en_parado", "ralenti_inestable", "ralenti_bajo", "ralenti_alto", "rpm_altas", "se_apaga", "arranque_dificil", "falla_frio", "apagones_intermitentes", "falla_al_encender_accesorios", "humo_negro"],
+            info: "LÓGICA: Controla el aire en mínima. Si está sucia, las RPM suben y bajan solas."
         },
         {
            nombre: "Bobinas de Encendido (Actuador)",
            dtc: "P0350 - P0362",
-           clave: ["check_engine","falla_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","enciende_normal_luego_se_apaga","misfire", "sin_chispa", "no_arranca", "jalonea", "perdida_potencia", "explosiones_escape", "se_apaga", "falla_caliente", "falla_lluvia_humedad", "respuesta_lenta_acelerador", "consumo_alto", "falla_en_subida"],
-           info: "LÓGICA: Transforma 12V en alta tensión. Si falla, el cilindro queda muerto, tiembla fuerte en parado y al acelerar se disimula."
+           clave: ["check_engine","check_engine_intermitente","falla_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","enciende_normal_luego_se_apaga","misfire", "sin_chispa", "no_arranca", "jalonea", "perdida_potencia", "explosiones_escape", "se_apaga", "falla_caliente", "falla_lluvia_humedad", "respuesta_lenta_acelerador", "consumo_alto", "falla_en_subida"],
+           info: "LÓGICA: Transforma 12V en alta tensión. Si falla, la chispa falla y la luz prende intermitente."
         },
         {
             nombre: "Convertidor Catalítico",
             dtc: "P0420 - P0430",
-            clave: ["check_engine","falla_en_subida","perdida_potencia", "no_acelera", "se_ahoga", "modo_emergencia", "limitado_a_3000_rpm", "consumo_mucho", "sobrecalentamiento", "olor_a_huevo_podrido", "ruido_metalico", "falta_de_fuerza_progresiva", "misfire"],
+            clave: ["check_engine","check_engine_intermitente","falla_en_subida","motor_perezoso","perdida_potencia", "no_acelera", "se_ahoga", "modo_emergencia", "limitado_a_3000_rpm", "consumo_mucho", "sobrecalentamiento", "olor_a_huevo_podrido", "ruido_metalico", "falta_de_fuerza_progresiva", "misfire"],
             info: "LÓGICA: Obstrucción. Si pierde fuerza subiendo o huele a azufre, la contrapresión está ahogando al motor."
         },
         {
             nombre: "Sensor de Presión de Aceite",
             dtc: "P0520 - P0523",
             clave: ["luz_aceite_encendida", "presion_aceite_baja", "zumbido_motor", "ruido_bielas", "falla_levas", "testigo_rojo", "marca_erratico", "sin_presion"],
-            info: "LÓGICA: Mide la fuerza con la que circula el aceite. Si falla o hay baja presión, se enciende la luz roja y puede causar daño grave al motor por falta de lubricación."
+            info: "LÓGICA: Mide la fuerza con la que circula el aceite. Si falla o hay baja presión, se enciende la luz ROJA de aceite."
         }
    ];
    const contenedorSintomas = document.getElementById("sintomas_container");
