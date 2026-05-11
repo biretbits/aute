@@ -172,70 +172,33 @@
     </div>
 </div>
 
-<script>const listaSintomas = [
-    "no_arranca",
-    "arranque_largo",
-    "arranque_dificil",
-    "se_apaga",
-    "apagones_intermitentes",
-    "jalonea",
-    "perdida_potencia",
-    "motor_perezoso",
-    "no_acelera",
-    "modo_emergencia",
-    "falla_en_subida",
-    "tironea_acelerando",
-    "se_ahoga",
-    "cascabelea",
-    "tiembla_en_recorrido",
-    "vibra_en_recorrido",
-    "limitado_a_3000_rpm",
-    "ralenti_inestable",
-    "ralenti_alto",
-    "ralenti_bajo",
-    "rpm_altas",
-    "rpm_suben_y_bajan",
-    "rpm_en_0",
-    "vibra_mucho",
-    "motor_cabecea",
-    "tiembla_en_parada",
-    "humo_negro",
-    "olor_gasolina",
-    "consume_mucho",
-    "mezcla_pobre",
-    "mezcla_rica",
-    "falla_frio",
-    "falla_caliente",
-    "sobrecalentamiento",
-    "ventilador_prendido",
-    "electroventilador_no_activa",
-    "electroventilador_siempre_activo",
-    "temperatura_tablero_erratica",
-    "explosiones_escape",
-    "explosiones_admision",
-    "baja_presion_combustible",
-    "alta_presion_combustible",
-    "presion_aceite_baja",
-    "tacometro_no",
-    "velocimetro_falla",
-    "caja_golpea",
-    "sin_chispa",
-    "sin_inyeccion",
-    "misfire",
-    "senal_erratica",
-    "sincronizacion_perdida",
-    "sincronizacion_acelerador",
-    "falla_aceleracion",
-    "respuesta_lenta_acelerador",
-    "pedal_no_responde",
-    "avance_atrasado",
-    "convertidor_sobrecalentado",
-    "codigo_correlacion_pedal",
-    "no_mejora_al_acelerar",
-    "mejora_al_acelerar",
-    "vibra_mucho", "vibracion_ritmica",
-];
-/* ==========================================================================
+<script>
+const listaSintomas = [
+    // --- Tus originales ---
+    "no_arranca", "arranque_largo", "arranque_dificil", "se_apaga", "apagones_intermitentes",
+    "jalonea", "perdida_potencia", "no_acelera", "modo_emergencia",
+    "falla_en_subida", "tironea_acelerando", "se_ahoga", "cascabelea", "tiembla_en_recorrido",
+    "vibra_en_recorrido", "limitado_a_3000_rpm", "ralenti_inestable", "ralenti_alto", "ralenti_bajo",
+    "rpm_altas", "rpm_suben_y_bajan", "rpm_en_0", "vibra_mucho", "motor_cabecea",
+    "tiembla_en_parada", "humo_negro", "olor_gasolina", "consume_mucho", "mezcla_pobre",
+    "mezcla_rica", "falla_frio", "falla_caliente", "sobrecalentamiento", "ventilador_prendido",
+    "electroventilador_no_activa", "electroventilador_siempre_activo", "temperatura_tablero_erratica",
+    "explosiones_escape", "explosiones_admision", "baja_presion_combustible", "alta_presion_combustible",
+    "presion_aceite_baja", "tacometro_no", "velocimetro_falla", "caja_golpea", "sin_chispa",
+    "sin_inyeccion", "misfire", "senal_erratica", "sincronizacion_perdida", "sincronizacion_acelerador",
+    "falla_aceleracion", "respuesta_lenta_acelerador", "pedal_no_responde", "avance_atrasado",
+    "convertidor_sobrecalentado", "codigo_correlacion_pedal", "no_mejora_al_acelerar", "mejora_al_acelerar",
+    "vibracion_ritmica",
+
+    // --- Nuevas claves específicas del CATALIZADOR ---
+    "olor_a_huevo_podrido",        // Falla química
+    "cascabeleo_metalico_interno", // Cerámica rota
+    "ruido_de_canicas",            // Percepción de usuario de cerámica rota
+    "baja_eficiencia_catalizador", // P0420/P0430
+    "motor_se_ahoga_por_escape",   // Obstrucción severa
+    "temperatura_escape_elevada",  // Calor retenido
+    "falta_de_fuerza_progresiva"   // Se cansa mientras más se usa
+];/* ==========================================================================
    BASE DE DATOS MAESTRA: AUTEMEC PRO - EDICIÓN DINÁMICA
    ========================================================================== */
    const sensores = [
@@ -303,7 +266,7 @@
      {
          nombre: "Sensor de Detonación (Knock)",
          dtc: "P0325",
-         clave: ["cascabelea", "perdida_potencia", "falla_en_subida", "jaloneos", "motor_perezoso", "consumo_alto", "explosiones_admision", "explosiones_escape", "avance_atrasado", "modo_seguro", "falla_aceleracion", "respuesta_lenta_acelerador", "temperatura_alta_motor"],
+         clave: ["cascabelea", "perdida_potencia", "falla_en_subida", "jaloneos", "consumo_alto", "explosiones_admision", "explosiones_escape", "avance_atrasado", "modo_seguro", "falla_aceleracion", "respuesta_lenta_acelerador", "temperatura_alta_motor"],
          info: "LÓGICA: Escucha el picado de bielas. Si falla, la ECU no retrasa el tiempo y escuchas el sonido metálico (metralla)."
      },
 
@@ -331,7 +294,7 @@
      {
          nombre: "Sensor APP (Pedal Acelerador)",
          dtc: "P2120",
-         clave: ["pedal_no_responde", "modo_emergencia", "no_acelera", "limitado_a_3000_rpm", "respuesta_lenta_acelerador", "aceleracion_erratica", "jalonea", "perdida_potencia", "ralenti_inestable", "se_apaga", "falla_aceleracion", "sincronizacion_acelerador", "cambios_bruscos", "motor_perezoso", "codigo_correlacion_pedal"],
+         clave: ["pedal_no_responde", "modo_emergencia", "no_acelera", "limitado_a_3000_rpm", "respuesta_lenta_acelerador", "aceleracion_erratica", "jalonea", "perdida_potencia", "ralenti_inestable", "se_apaga", "falla_aceleracion", "sincronizacion_acelerador", "cambios_bruscos", "codigo_correlacion_pedal"],
          info: "LÓGICA: Doble señal de seguridad. Si los dos voltajes internos no coinciden, la ECU ignora el pedal para evitar accidentes."
      },
      {
@@ -361,7 +324,35 @@
         "falla_aceleracion"
     ],
     info: "LÓGICA: La bobina transforma 12V en miles de voltios para generar chispa. Si falla una bobina, el cilindro queda muerto provocando misfire, vibración y pérdida de potencia. Cuando se calienta puede abrirse internamente y causar apagones o falla intermitente."
-}
+},
+{
+    nombre: "Convertidor Catalítico",
+    dtc: "P0420 - P0430",
+    clave: [
+        "perdida_potencia",
+        "no_acelera",
+        "falla_en_subida",
+        "se_ahoga",
+        "modo_emergencia",
+        "limitado_a_3000_rpm",
+        "vibra_mucho",
+        "motor_cabecea",
+        "consume_mucho",
+        "mezcla_rica",
+        "falla_caliente",
+        "sobrecalentamiento",
+        "falla_aceleracion",
+        "respuesta_lenta_acelerador",
+        "no_mejora_al_acelerar",
+        "convertidor_sobrecalentado",
+        "olor_a_huevo_podrido",
+        "cascabeleo_metalico_interno",
+        "ruido_de_canicas",
+        "baja_eficiencia_catalizador",
+        "falta_de_fuerza_progresiva"
+    ],
+    info: "LÓGICA: Obstrucción o degradación química. Si el auto pierde fuerza al subir o el escape huele a azufre, la contrapresión está ahogando al motor. Si se pone al rojo vivo, está totalmente tapado."
+},
  ];
 const contenedorSintomas = document.getElementById("sintomas_container");
 
