@@ -159,7 +159,11 @@
         <!-- SECCIÓN DE RESULTADOS -->
         <div class="col-12 col-lg-7">
             <div class="panel">
+
                 <h4 class="text-info border-bottom pb-2">Resultados del Análisis</h4>
+                <div class="container">
+                  Nota: vibrar es mas fuerte y temblor es mas suave y habeses ni se nota
+                </div>
                 <div id="resultado_container">
                     <p class="text-center text-secondary mt-5">Marque los síntomas del vehículo para ver posibles fallas.</p>
                 </div>
@@ -168,121 +172,194 @@
     </div>
 </div>
 
-<script>
-/* ================= LISTA DE SÍNTOMAS ================= */
-/* ================= LISTA DE SÍNTOMAS ACTUALIZADA (PRO) ================= */
-const listaSintomas = [
-    // Arranque y Apagado
-    "no_arranca", "arranque_largo", "se_apaga", "apagones_intermitentes",
-
-    // Marcha y Potencia
-    "jalonea", "perdida_potencia", "no_acelera", "modo_emergencia",
-    "falla_en_subida", "tironea_acelerando", "se_ahoga", "cascabelea",
-
-    // Ralentí (Marcha mínima)
-    "ralenti_inestable", "ralenti_alto", "ralenti_bajo", "rpm_altas", "vibra_mucho",
-
-    // Humos y Olores
-    "humo_negro", "humo_azul", "olor_gasolina", "olor_quemado",
-
-    // Mezcla y Consumo
-    "consume_mucho", "consumo_excesivo_combustible", "mezcla_pobre", "mezcla_rica",
-
-    // Temperatura y Eléctrico
-    "falla_frio", "falla_caliente", "sobrecalentamiento", "ventilador_prendido",
-    "voltaje_5v", "senal_inestable", "tablero_loco",
-
-    // Explosiones y Presión
-    "explosiones_escape", "explosiones_admision",
-    "baja_presion_combustible", "alta_presion_combustible",
-
-    // Sensores Específicos / Tablero
-    "tacometro_no", "velocimetro_falla", "caja_golpea", "abs_falla", "scanner_no_comunica",
-    "sin_chispa", "sin_inyeccion"
+<script>const listaSintomas = [
+    "no_arranca",
+    "arranque_largo",
+    "arranque_dificil",
+    "se_apaga",
+    "apagones_intermitentes",
+    "jalonea",
+    "perdida_potencia",
+    "motor_perezoso",
+    "no_acelera",
+    "modo_emergencia",
+    "falla_en_subida",
+    "tironea_acelerando",
+    "se_ahoga",
+    "cascabelea",
+    "tiembla_en_recorrido",
+    "vibra_en_recorrido",
+    "limitado_a_3000_rpm",
+    "ralenti_inestable",
+    "ralenti_alto",
+    "ralenti_bajo",
+    "rpm_altas",
+    "rpm_suben_y_bajan",
+    "rpm_en_0",
+    "vibra_mucho",
+    "motor_cabecea",
+    "tiembla_en_parada",
+    "humo_negro",
+    "olor_gasolina",
+    "consume_mucho",
+    "mezcla_pobre",
+    "mezcla_rica",
+    "falla_frio",
+    "falla_caliente",
+    "sobrecalentamiento",
+    "ventilador_prendido",
+    "electroventilador_no_activa",
+    "electroventilador_siempre_activo",
+    "temperatura_tablero_erratica",
+    "explosiones_escape",
+    "explosiones_admision",
+    "baja_presion_combustible",
+    "alta_presion_combustible",
+    "presion_aceite_baja",
+    "tacometro_no",
+    "velocimetro_falla",
+    "caja_golpea",
+    "sin_chispa",
+    "sin_inyeccion",
+    "misfire",
+    "senal_erratica",
+    "sincronizacion_perdida",
+    "sincronizacion_acelerador",
+    "falla_aceleracion",
+    "respuesta_lenta_acelerador",
+    "pedal_no_responde",
+    "avance_atrasado",
+    "convertidor_sobrecalentado",
+    "codigo_correlacion_pedal"
 ];
+/* ==========================================================================
+   BASE DE DATOS MAESTRA: AUTEMEC PRO - EDICIÓN DINÁMICA
+   ========================================================================== */
+   const sensores = [
+     // --- GRUPO 1: SINCRONIZACIÓN Y TIEMPO ---
+     {
+         nombre: "Sensor CKP (Cigüeñal)",
+         dtc: "P0335 - P0338",
+         clave: ["no_arranca", "sin_chispa", "sin_inyeccion", "tacometro_no", "se_apaga", "apagones_intermitentes", "falla_caliente", "jaloneos", "senal_erratica", "arranque_largo"],
+         info: "LÓGICA: Si falla, la ECU no sabe que el motor gira. El tacómetro en 0 mientras das marcha es la prueba reina."
+     },
+     {
+         nombre: "Sensor CMP (Árbol de Levas)",
+         dtc: "P0340 - P0344",
+         clave: ["arranque_largo", "perdida_potencia", "explosiones_escape", "no_arranca", "jalonea", "misfire", "ralenti_inestable", "falla_caliente", "sincronizacion_perdida", "consumo_alto", "arranque_dificil", "modo_seguro"],
+         info: "LÓGICA: Sincroniza la secuencia de inyección. Sin él, la ECU 'adivina' el tiempo, causando arranques de 5-10 segundos."
+     },
 
-/* ================= BASE DE DATOS (SENSORES Y ACTUADORES) ================= */
-const sensores = [
-    {
-        nombre: "Sensor CKP (Cigüeñal)",
-        dtc: "P0335 - P0339",
-        clave: ["no_arranca", "sin_chispa", "sin_inyeccion", "tacometro_no", "se_apaga", "apagones_intermitentes", "arranque_largo"],
-        info: "CLAVE MAESTRA: Aguja del tacómetro muerta. Si al dar arranque la aguja de RPM no sube ni un milímetro, el CKP no está enviando señal. Es la única falla que corta chispa y pulso al mismo tiempo."
-    },
-    {
-        nombre: "Sensor CMP (Árbol de Levas)",
-        dtc: "P0340 - P0343",
-        clave: ["arranque_largo", "falla_caliente", "perdida_potencia", "modo_emergencia", "explosiones_escape", "jalonea"],
-        info: "CLAVE MAESTRA: El motor arranca al segundo o tercer intento (Arranque largo). A diferencia del CKP, el CMP permite que el motor encienda usando una estrategia de emergencia tras varios giros."
-    },
-    {
-        nombre: "Sensor MAF (Flujo de Aire)",
-        dtc: "P0100 - P0104",
-        clave: ["humo_negro", "consume_mucho", "se_ahoga", "jalonea", "ralenti_inestable", "mezcla_rica", "perdida_potencia", "tironea_acelerando", "explosiones_escape"],
-        info: "CLAVE MAESTRA: Prueba de desconexión. Si el motor falla mucho y al desconectar el sensor el motor se empareja o estabiliza, el MAF está enviando una lectura falsa de peso de aire."
-    },
-    {
-        nombre: "Sensor MAP (Presión Absoluta)",
-        dtc: "P0105 - P0109",
-        clave: ["falla_en_subida", "perdida_potencia", "consume_mucho", "humo_negro", "se_ahoga", "explosiones_admision", "mezcla_rica", "ralenti_bajo"],
-        info: "CLAVE MAESTRA: Ahogamiento en carga. Si el auto acelera bien en vacío pero al subir una pendiente (en Challapata) hecha humo negro y pierde fuerza totalmente, el MAP no detecta la presión de carga."
-    },
-    {
-        nombre: "Sensor TPS (Posición de Mariposa)",
-        dtc: "P0120 - P0124",
-        clave: ["no_acelera", "modo_emergencia", "rpm_altas", "tironea_acelerando", "caja_golpea", "ralenti_alto", "se_ahoga"],
-        info: "CLAVE MAESTRA: El punto muerto del pedal. Si el tironeo ocurre siempre a la misma altura del pedal o el ralentí se queda alto porque el sensor no marca 0% de apertura (mariposa cerrada)."
-    },
-    {
-        nombre: "Sensor ECT (Temperatura)",
-        dtc: "P0115 - P0119",
-        clave: ["falla_frio", "falla_caliente", "sobrecalentamiento", "ventilador_prendido", "consume_mucho", "ralenti_alto", "humo_negro", "arranque_largo", "consumo_excesivo_combustible"],
-        info: "CLAVE MAESTRA: Ralentí alto con ventiladores locos. Si el motor está frío, se acelera solo y el ventilador enciende de inmediato, el ECT está informando una temperatura errónea (cortocircuito)."
-    },
-    {
-        nombre: "Sonda Lambda (Sensor de Oxígeno)",
-        dtc: "P0130 - P0172",
-        clave: ["humo_negro", "mezcla_rica", "mezcla_pobre", "consume_mucho", "falla_caliente", "jalonea", "olor_gasolina", "consumo_excesivo_combustible"],
-        info: "CLAVE MAESTRA: Falla tardía. El motor arranca perfecto y falla recién a los 3 o 5 minutos (cuando entra en Closed Loop). Si la falla es desde el primer segundo, no es la Sonda Lambda."
-    },
-    {
-        nombre: "Knock Sensor (Detonación)",
-        dtc: "P0325 - P0332",
-        clave: ["cascabelea", "perdida_potencia", "falla_en_subida"],
-        info: "CLAVE MAESTRA: Motor atrasado. Es la única falla que hace que el motor se sienta 'pesado' y sin avance, porque la ECU retarda el tiempo de encendido al máximo por seguridad."
-    },
-    {
-        nombre: "Bomba / Presión de Combustible",
-        dtc: "P0087 / P0190",
-        clave: ["no_arranca", "baja_presion_combustible", "falla_en_subida", "tironea_acelerando", "arranque_largo", "se_apaga", "mezcla_pobre"],
-        info: "CLAVE MAESTRA: Explosiones por la admisión. Cuando falta presión, la mezcla se vuelve tan pobre que la combustión se vuelve lenta y regresa por el múltiple de admisión al acelerar fuerte."
-    },
-    {
-        nombre: "Bobinas / Sistema de Encendido",
-        dtc: "P0350 - P0354",
-        clave: ["vibra_mucho", "explosiones_escape", "jalonea", "sin_chispa", "perdida_potencia", "falla_caliente", "humo_azul"],
-        info: "CLAVE MAESTRA: El jaloneo rítmico. A diferencia de un sensor, la falla de bobina es constante y se siente como un 'salto' en el motor cada vez que el cilindro afectado intenta trabajar."
-    },
-    {
-        nombre: "Válvula IAC (Ralentí)",
-        dtc: "P0505 - P0507",
-        clave: ["ralenti_inestable", "se_apaga", "ralenti_alto", "ralenti_bajo", "rpm_altas", "vibra_mucho"],
-        info: "CLAVE MAESTRA: Se apaga al soltar el pedal. Si el motor se apaga en cada esquina pero funciona bien si mantienes el pie un poquito en el acelerador, el paso de aire mínimo (IAC) está bloqueado."
-    },
-    {
-        nombre: "Válvula EGR",
-        dtc: "P0400 - P0406",
-        clave: ["ralenti_inestable", "explosiones_admision", "se_apaga", "perdida_potencia", "humo_negro"],
-        info: "CLAVE MAESTRA: Tiembla en ralentí, corre bien en alta. Si el motor parece que se va a desarmar en el semáforo pero en carretera no tiene ninguna falla, la EGR se quedó abierta metiendo escape al ralentí."
-    },
-    {
-        nombre: "Válvula EVAP (Cánister)",
-        dtc: "P0440 - P0443",
-        clave: ["olor_gasolina", "arranque_largo", "ralenti_inestable", "mezcla_rica"],
-        info: "CLAVE MAESTRA: Falla después de cargar gasolina. Si el auto se ahoga o tarda en encender justo después de llenar el tanque de combustible, la válvula de purga está dejando pasar vapores directos."
-    }
-];
-/* ================= GENERAR CUESTIONARIO ================= */
+     // --- GRUPO 2: FLUJO Y PRESIÓN DE AIRE ---
+     {
+         nombre: "Sensor MAF (Flujo de Aire)",
+         dtc: "P0100 - P0104",
+         clave: ["tiembla_en_recorrido", "humo_negro", "jalonea", "se_ahoga", "mezcla_pobre", "mezcla_rica", "perdida_potencia", "consumo_alto", "ralenti_inestable", "apagones", "arranque_dificil", "respuesta_lenta_acelerador", "falla_aceleracion"],
+         info: "LÓGICA: Mide el peso del aire. Si está sucio, subestima el aire y el motor vacila por falta de gasolina en crucero."
+     },
+     {
+         nombre: "Sensor MAP (Presión Absoluta)",
+         dtc: "P0105 - P0109",
+         clave: ["vibra_en_recorrido", "falla_en_subida", "motor_cabecea", "explosiones_admision", "mezcla_rica", "mezcla_pobre", "perdida_potencia", "jaloneos", "ralenti_inestable", "consumo_alto", "humo_negro", "arranque_dificil", "se_apaga", "falla_aceleracion", "respuesta_lenta_acelerador", "modo_seguro"],
+         info: "LÓGICA: Mide el vacío. Es vital para calcular el avance del encendido cuando el motor hace fuerza (subidas)."
+     },
+     {
+         nombre: "Sensor IAT (Temperatura de Aire)",
+         dtc: "P0110 - P0113",
+         clave: ["falla_frio", "consume_mucho", "mezcla_rica", "arranque_largo", "humo_negro", "ralenti_inestable", "perdida_potencia", "falla_aceleracion", "respuesta_lenta_acelerador", "mezcla_pobre", "jaloneos", "arranque_dificil", "se_ahoga"],
+         info: "LÓGICA: El aire frío es más denso. Si el sensor marca siempre calor, la ECU no enriquecerá la mezcla y el auto fallará en frío."
+     },
+
+     // --- GRUPO 3: COMBUSTIBLE Y PRESIÓN ---
+     {
+         nombre: "Sensor FRP (Presión del Riel)",
+         dtc: "P0190 - P0193",
+         clave: ["alta_presion_combustible", "baja_presion_combustible", "modo_emergencia", "jalonea", "no_arranca", "arranque_largo", "perdida_potencia", "se_apaga", "ralenti_inestable", "humo_negro", "mezcla_pobre", "mezcla_rica", "falla_aceleracion", "respuesta_lenta_acelerador", "misfire", "consumo_alto"],
+         info: "LÓGICA: El vigía de la inyección directa/common rail. Si reporta sobrepresión, la ECU corta potencia para evitar roturas."
+     },
+     {
+         nombre: "Inyectores de Combustible (Actuador)",
+         dtc: "P0200 - P0204",
+         clave: ["vibra_en_recorrido", "tiembla_en_parada", "olor_gasolina", "humo_negro", "sin_inyeccion", "misfire", "jaloneos", "perdida_potencia", "consume_mucho", "arranque_dificil", "no_arranca", "ralenti_inestable", "explosiones_escape", "mezcla_rica", "mezcla_pobre", "se_apaga", "motor_cabecea"],
+         info: "LÓGICA: Fallo de entrega. Si un inyector gotea, hay humo negro; si no abre, el motor vibra por cilindro muerto."
+     },
+     {
+         nombre: "Bomba de Combustible (Actuador)",
+         dtc: "P0087",
+         clave: ["baja_presion_combustible", "vibra_en_recorrido", "falla_en_subida", "se_apaga", "perdida_potencia", "jaloneos", "arranque_largo", "no_arranca", "falla_aceleracion", "motor_cabecea", "se_ahoga", "ralenti_inestable", "apagones_intermitentes", "respuesta_lenta_acelerador", "misfire"],
+         info: "LÓGICA: Falta de caudal. En alta demanda (subida), la presión cae y el motor vibra por hambre de combustible."
+     },
+
+     // --- GRUPO 4: TEMPERATURA Y DETONACIÓN ---
+     {
+         nombre: "Sensor ECT (Temperatura Refrigerante)",
+         dtc: "P0115 - P0119",
+         clave: ["falla_frio", "falla_caliente", "sobrecalentamiento", "ventilador_prendido", "consume_mucho", "arranque_dificil", "arranque_largo", "humo_negro", "mezcla_rica", "ralenti_inestable", "se_apaga", "perdida_potencia", "falla_aceleracion", "temperatura_tablero_erratica", "electroventilador_no_activa", "electroventilador_siempre_activo"],
+         info: "LÓGICA: Es el 'estrangulador' electrónico. Si marca siempre frío, el auto se ahoga en gasolina cuando ya calentó."
+     },
+     {
+         nombre: "Sensor de Detonación (Knock)",
+         dtc: "P0325",
+         clave: ["cascabelea", "perdida_potencia", "falla_en_subida", "jaloneos", "motor_perezoso", "consumo_alto", "explosiones_admision", "explosiones_escape", "avance_atrasado", "modo_seguro", "falla_aceleracion", "respuesta_lenta_acelerador", "temperatura_alta_motor"],
+         info: "LÓGICA: Escucha el picado de bielas. Si falla, la ECU no retrasa el tiempo y escuchas el sonido metálico (metralla)."
+     },
+
+     // --- GRUPO 5: GASES Y EMISIONES ---
+     {
+         nombre: "Sonda Lambda (Oxígeno)",
+         dtc: "P0130 - P0172",
+        clave: ["tiembla_en_recorrido", "consume_mucho", "mezcla_rica", "olor_gasolina", "falla_caliente", "mezcla_pobre", "humo_negro", "ralenti_inestable", "jaloneos", "perdida_potencia", "falla_aceleracion", "respuesta_lenta_acelerador", "explosiones_escape", "arranque_dificil", "se_apaga", "convertidor_sobrecalentado"],
+         info: "LÓGICA: Corrige la mezcla en tiempo real. Si se vuelve lenta, causa un vaivén rítmico de potencia (Surging)."
+     },
+     {
+         nombre: "Válvula EGR (Actuador)",
+         dtc: "P0400 - P0406",
+         clave: ["tiembla_en_parada", "se_apaga", "explosiones_admision", "humo_negro", "ralenti_inestable", "perdida_potencia", "jaloneos", "falla_aceleracion", "motor_cabecea", "mezcla_pobre", "mezcla_rica", "consumo_alto", "falla_en_subida", "arranque_dificil", "se_ahoga", "modo_seguro"],
+         info: "LÓGICA: Si se traba abierta, introduce gases quemados en ralentí, asfixiando la combustión."
+     },
+
+     // --- GRUPO 6: POSICIÓN Y MARIPOSA ---
+     {
+         nombre: "Sensor TPS (Posición de Mariposa)",
+         dtc: "P0120 - P0124",
+         clave: ["no_acelera", "tironea_acelerando", "jalonea", "rpm_altas", "caja_golpea", "ralenti_inestable", "respuesta_lenta_acelerador", "falla_aceleracion", "modo_seguro", "se_apaga", "aceleracion_erratica", "cambios_bruscos", "perdida_potencia", "arranque_dificil", "motor_cabecea", "sincronizacion_acelerador"],
+         info: "LÓGICA: Informa cuánto abriste el aire. Si tiene un 'punto muerto', el auto dará un tirón violento al pasar por ese grado de apertura."
+     },
+     {
+         nombre: "Sensor APP (Pedal Acelerador)",
+         dtc: "P2120",
+         clave: ["pedal_no_responde", "modo_emergencia", "no_acelera", "limitado_a_3000_rpm", "respuesta_lenta_acelerador", "aceleracion_erratica", "jalonea", "perdida_potencia", "ralenti_inestable", "se_apaga", "falla_aceleracion", "sincronizacion_acelerador", "cambios_bruscos", "motor_perezoso", "codigo_correlacion_pedal"],
+         info: "LÓGICA: Doble señal de seguridad. Si los dos voltajes internos no coinciden, la ECU ignora el pedal para evitar accidentes."
+     },
+     {
+         nombre: "Válvula IAC (Actuador)",
+         dtc: "P0505 - P0507",
+         clave: ["ralenti_inestable", "ralenti_bajo", "ralenti_alto", "se_apaga", "rpm_suben_y_bajan", "arranque_dificil", "falla_frio", "motor_tiembla", "se_ahoga", "apagones_intermitentes", "aceleracion_inestable", "consume_mucho", "falla_al_encender_accesorios", "motor_cabecea", "ralenti_oscilante"],
+         info: "LÓGICA: Controla el aire en mínima. Si está sucia, las RPM oscilarán o el motor se apagará al soltar el pedal."
+     },
+     {
+    nombre: "Bobinas de Encendido (Actuador)",
+    dtc: "P0350 - P0362",
+    clave: [
+        "misfire",
+        "sin_chispa",
+        "no_arranca",
+        "jalonea",
+        "perdida_potencia",
+        "motor_cabecea",
+        "tiembla_en_parada",
+        "explosiones_escape",
+        "humo_negro",
+        "consume_mucho",
+        "se_apaga",
+        "arranque_dificil",
+        "falla_caliente",
+        "ralenti_inestable",
+        "falla_aceleracion"
+    ],
+    info: "LÓGICA: La bobina transforma 12V en miles de voltios para generar chispa. Si falla una bobina, el cilindro queda muerto provocando misfire, vibración y pérdida de potencia. Cuando se calienta puede abrirse internamente y causar apagones o falla intermitente."
+}
+ ];
 const contenedorSintomas = document.getElementById("sintomas_container");
 
 listaSintomas.sort().forEach(s => {
@@ -298,65 +375,116 @@ listaSintomas.sort().forEach(s => {
 /* ================= LÓGICA DE DIAGNÓSTICO (SUMA) ================= */
 /* ================= LÓGICA DE DIAGNÓSTICO (TOP 2) ================= */
 function diagnosticar() {
-    const seleccionados = [...document.querySelectorAll("input:checked")].map(x => x.value);
+
+    const seleccionados = [...document.querySelectorAll("input:checked")]
+        .map(x => x.value);
+
     const resultContainer = document.getElementById("resultado_container");
 
     if (seleccionados.length === 0) {
-        resultContainer.innerHTML = "<div class='alert alert-warning'>Por favor, seleccione al menos un síntoma.</div>";
+
+        resultContainer.innerHTML = `
+            <div class='alert alert-warning'>
+                Por favor, seleccione al menos un síntoma.
+            </div>
+        `;
+
         return;
     }
 
     let resultados = [];
 
     sensores.forEach(s => {
+
         let puntos = 0;
         let coincidencias = [];
 
         seleccionados.forEach(sel => {
+
             if (s.clave.includes(sel)) {
-                puntos++; // SUMAR PUNTO
-                coincidencias.push(sel.replaceAll("_", " "));
+
+                puntos++;
+
+                coincidencias.push(
+                    sel.replaceAll("_", " ")
+                );
+
             }
+
         });
 
+        // SOLO GUARDAR SI COINCIDE
         if (puntos > 0) {
-            resultados.push({ ...s, puntos, coincidencias });
+
+            resultados.push({
+                ...s,
+                puntos,
+                coincidencias
+            });
+
         }
+
     });
 
-    // 1. Ordenar de mayor a menor puntaje
-    resultados.sort((a, b) => b.puntos - a.puntos);
+    // OBTENER EL MAYOR PUNTAJE
+    const maxPuntos = Math.max(...resultados.map(r => r.puntos));
 
-    // 2. FILTRAR: Tomar solo los 2 primeros (los más votados)
-    const topResultados = resultados.slice(0, 2);
+    // SOLO MOSTRAR LOS QUE TIENEN EL MAYOR PUNTAJE
+    resultados = resultados.filter(r => r.puntos === maxPuntos);
 
-    // Renderizar
     let html = "";
-    if (topResultados.length === 0) {
-        html = "<div class='alert alert-danger'>No se encontraron coincidencias. Revise fallas mecánicas (compresión/tiempo).</div>";
-    } else {
-        // Mensaje que indica que se muestran los resultados principales
-        html = `<h5 class="text-info mb-3">Principales Sospechosos (Top 2):</h5>`;
 
-        topResultados.forEach(r => {
-            const colorBorde = r.puntos >= 3 ? "#00ffcc" : (r.puntos >= 2 ? "#ffcc00" : "#666");
+    if (resultados.length === 0) {
+
+        html = `
+            <div class='alert alert-danger'>
+                No se encontraron coincidencias.
+            </div>
+        `;
+
+    } else {
+
+        html = `
+            <h5 class="text-info mb-3">
+                Principales sospechosos:
+            </h5>
+        `;
+
+        resultados.forEach(r => {
 
             html += `
-                <div class="sensor-card" style="border-left: 6px solid ${colorBorde}">
-                    <span class="puntaje-badge">${r.puntos} Ptos</span>
+                <div class="sensor-card"
+                     style="border-left:6px solid #00ffcc">
+
+                    <span class="puntaje-badge">
+                        ${r.puntos} Coincidencias
+                    </span>
+
                     <h4>${r.nombre}</h4>
-                    <div class="codigo-dtc">Posibles DTC: ${r.dtc}</div>
+
+                    <div class="codigo-dtc">
+                        Posibles DTC: ${r.dtc}
+                    </div>
 
                     <div class="match-list">
+
                         <strong>Coincidencias:</strong><br>
-                        ${r.coincidencias.map(c => `<span>${c}</span>`).join("")}
+
+                        ${r.coincidencias.map(c => `
+                            <span>${c}</span>
+                        `).join("")}
+
                     </div>
 
                     <pre>${r.info}</pre>
+
                 </div>
             `;
+
         });
+
     }
+
     resultContainer.innerHTML = html;
 }
 </script>
