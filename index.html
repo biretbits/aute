@@ -241,7 +241,9 @@ const listaSintomas = [
     "Caja Automática Golpea o Desliza",
     "Pérdida de Frenado o Dirección Asistida",
     "Baja Presión de Aceite o Combustible (Testigo)",
-    "Falla General del Sistema Eléctrico"
+    "Falla General del Sistema Eléctrico",
+    "Sistemas de Confort Automatizados (Lluvia, Luz, Espejos)",
+    "Aire Acondicionado No Enfría o No Calienta"
 ];
 const sensores = [
     // --- GRUPO 1: SINCRONIZACIÓN Y TIEMPO ---
@@ -1092,7 +1094,238 @@ const sensores = [
       }
     },
     "info": "LÓGICA: El VSS informa la velocidad del vehículo a la ECU y transmisión automática. Sus síntomas MÁS importantes son velocímetro errático o muerto, cambios bruscos de caja automática, odómetro incorrecto y control crucero que deja de funcionar. ❌ NO provoca directamente apagados, ralentí inestable, humo, explosiones ni falta severa de potencia del motor. Algunos vehículos pueden entrar en modo de protección o limitar funciones de transmisión."
-  }
+  },
+  {
+    "nombre": "Sensor APP (Pedal Acelerador)",
+    "dtc": "P2120 - P2128, P2135, P2138",
+
+    "clave": {
+
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "El síntoma principal. La señal del pedal es la orden de aceleración. Si falla o es errática, la ECU no abre correctamente la mariposa, causando falta de respuesta o aceleración muy pobre [14†L45-L47]."
+        },
+
+        "Límite de RPM / Modo de Emergencia": {
+            "nivel": "fuerte",
+            "comentario": "Cuando la ECU detecta una señal contradictoria o inválida de los sensores APP1 y APP2, activa el 'modo seguro' ('Limp Mode') para proteger el motor, limitando la velocidad y las RPM [16†L9-L14]."
+        },
+
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU enciende el Check Engine y a menudo luces específicas como 'ETC' o 'Reduced Power' al almacenar códigos de falla relacionados con el circuito del sensor APP [9†L15-L17][26†L28]."
+        },
+
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "medio",
+            "comentario": "El APP también influye en el control de ralentí. Señales sucias o intermitentes pueden hacer que la ECU busque constantemente las RPM, causando inestabilidad, cabeceo o ralentí alto [2†L16-L17][11†L8-L9]."
+        },
+
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "medio",
+            "comentario": "Una falla súbita en la señal del pedal puede ser interpretada como 'pedal soltado', y si ocurre en ralentí o al desacelerar, la ECU puede cortar el combustible y apagar el motor [2†L18-L19][24†L29-L31]."
+        },
+
+        "Vibración Durante la Marcha": {
+            "nivel": "medio",
+            "comentario": "La entrega de potencia inconsistente por una señal APP defectuosa se manifiesta como aceleración entrecortada o a tirones, 'jaloneos' mientras el vehículo está en movimiento [3†L10-L11]."
+        },
+
+        "Consumo Excesivo de Combustible": {
+            "nivel": "debil",
+            "comentario": "Aunque menos común, la ECU puede aumentar el consumo al usar estrategias de respaldo ineficientes o al enriquecer la mezcla de forma incorrecta debido a una mala señal del pedal [10†L25-L27]."
+        },
+
+        "Caja Automática Golpea o Desliza": {
+            "nivel": "debil",
+            "comentario": "El módulo de la transmisión (TCM) usa la señal del pedal del acelerador para decidir los cambios. Una señal errática puede causar cambios bruscos, impredecibles o golpes [10†L29-L31]."
+        }
+    },
+
+    "info": "LÓGICA: El Sensor APP informa a la ECU la posición del pedal del acelerador ('drive by wire'). Los síntomas principales: check engine encendido y pérdida de potencia. Síntomas secundarios: entradas en modo seguro, ralentí inestable, 'tirones' y hasta posibles apagones. ❌ No arranque, ralentí inestable por otros motores, explosiones por el escape, humo o sobrecalentamiento."
+},
+    {
+        "nombre": "Sensor de Nivel de Aceite",
+        "dtc": "P2500 - P2503",
+        "clave": {
+            "Luces de Advertencia Encendidas": { "nivel": "fuerte", "comentario": "El testigo de nivel de aceite se enciende en el tablero, aunque el aceite esté en su nivel correcto[reference:30][reference:31]." },
+            "Baja Presión de Aceite o Combustible (Testigo)": { "nivel": "medio", "comentario": "Algunos vehículos integran la advertencia de nivel en el mismo testigo de presión. El sensor defectuoso puede activar la luz erróneamente[reference:32]." },
+            "Falla General del Sistema Eléctrico": { "nivel": "debil", "comentario": "Puede generar lecturas erráticas en el panel de instrumentos o fallo intermitente del testigo[reference:33]." }
+        },
+        "info": "LÓGICA: El sensor de nivel de aceite monitorea la cantidad de aceite en el cárter. Su falla no afecta el rendimiento del motor, solo la precisión de la advertencia. ❌ No causa pérdida de potencia, ruidos ni apagones."
+    },
+    {
+        "nombre": "Sensor de Presión de Sobrealimentación (Turbo)",
+        "dtc": "P0236 - P0238",
+        "clave": {
+            "Falta de Potencia / Aceleración Lenta": { "nivel": "fuerte", "comentario": "Si el sensor reporta presión incorrecta, la ECU limita la inyección de combustible y reduce la potencia del motor[reference:34]." },
+            "Humo Anormal por el Escape": { "nivel": "medio", "comentario": "Una lectura errática puede causar mezcla rica (humo negro)[reference:35]." },
+            "Consumo Excesivo de Combustible": { "nivel": "medio", "comentario": "La mezcla incorrecta por mala lectura aumenta el consumo." },
+            "Luces de Advertencia Encendidas": { "nivel": "fuerte", "comentario": "La ECU detecta señales fuera de rango del sensor de presión de sobrealimentación y activa Check Engine." },
+            "Límite de RPM / Modo de Emergencia": { "nivel": "medio", "comentario": "Para proteger el motor, muchos vehículos limitan la presión de turbo y entran en modo de emergencia." }
+        },
+        "info": "LÓGICA: Este sensor mide la presión del aire comprimido por el turbo. Si falla, la ECU calcula mal la cantidad de combustible, resultando en pérdida de potencia, humo negro y modo de emergencia. ❌ Rara vez causa problemas de arranque o ralentí inestable."
+    },
+    {
+        "nombre": "Sensor de Velocidad de Rueda (ABS/ESP)",
+        "dtc": "C0035 - C0040, P0500",
+        "clave": {
+            "Luces de Advertencia Encendidas": { "nivel": "fuerte", "comentario": "La luz del ABS o ESP se enciende en el tablero. Es el síntoma más común[reference:36][reference:37]." },
+            "Pérdida de Frenado o Dirección Asistida": { "nivel": "medio", "comentario": "El ABS se desactiva, el frenado puede sentirse normal pero sin antibloqueo en emergencias. No hay pérdida total de frenado[reference:38]." },
+            "Falla General del Sistema Eléctrico": { "nivel": "debil", "comentario": "La señal errática puede afectar la comunicación CAN y encender múltiples testigos." }
+        },
+        "info": "LÓGICA: Cada rueda tiene un sensor que informa su velocidad a la centralita ABS/ESP. Si falla, se activa la luz de advertencia y el sistema deja de funcionar, pero los frenos convencionales siguen operando. ❌ No causa pérdida de potencia del motor ni problemas de dirección asistida."
+    },
+    {
+        "nombre": "Sensor de Ángulo de Giro (ESP/ESC)",
+        "dtc": "C1233, C1234, P1773",
+        "clave": {
+            "Luces de Advertencia Encendidas": { "nivel": "fuerte", "comentario": "Se enciende la luz del ESP o del control de estabilidad en el tablero[reference:39]." },
+            "Pérdida de Frenado o Dirección Asistida": { "nivel": "medio", "comentario": "El sistema ESP no podrá corregir derrapes, pero la dirección y frenos convencionales funcionan con normalidad[reference:40]." },
+            "Falla General del Sistema Eléctrico": { "nivel": "debil", "comentario": "Puede provocar errores de comunicación con otros módulos y encender luces de advertencia adicionales." }
+        },
+        "info": "LÓGICA: Este sensor mide la orientación del volante. El ESP lo usa para saber si el conductor intenta girar. Si falla, el ESP se desactiva. ❌ No altera el motor, la transmisión ni el confort."
+    },
+    {
+        "nombre": "Alternador / Sistema de Carga",
+        "dtc": "P0620 - P0625, P0562 - P0563",
+        "clave": {
+            "Luces de Advertencia Encendidas": { "nivel": "fuerte", "comentario": "El testigo rojo de batería se enciende en el tablero, ya sea fijo o intermitente[reference:41][reference:42]." },
+            "Problemas de Arranque": { "nivel": "fuerte", "comentario": "Batería descargada por alternador defectuoso: el motor gira lento o no arranca[reference:43]." },
+            "Falla General del Sistema Eléctrico": { "nivel": "fuerte", "comentario": "Faros tenues, luces interiores que parpadean, radio que se apaga, elevalunas lentos[reference:44]." },
+            "Problemas de Apagado (en marcha o ralentí)": { "nivel": "medio", "comentario": "Si el alternador deja de generar por completo, el motor se apaga por falta de voltaje en la ECU[reference:45]." }
+        },
+        "info": "LÓGICA: El alternador genera electricidad y carga la batería. Sus fallas típicas son: luz de batería encendida, arranque débil, faros tenues y eventual apagón del motor. ❌ No provoca humo, explosiones ni ruidos anormales (excepto chirridos de correa)."
+    },
+    {
+        "nombre": "Módulo TCM (Control de Transmisión)",
+        "dtc": "P0600 - P0606, U0101",
+        "clave": {
+            "Caja Automática Golpea o Desliza": { "nivel": "fuerte", "comentario": "Cambios bruscos, patinaje entre marchas o golpes al seleccionar D o R[reference:46]." },
+            "Dificultad para Cambiar Marchas (Transmisión)": { "nivel": "fuerte", "comentario": "No responde a la palanca, se queda en una marcha o no cambia correctamente[reference:47]." },
+            "Luces de Advertencia Encendidas": { "nivel": "fuerte", "comentario": "Se enciende el testigo de 'Check Transmission' o el Check Engine[reference:48]." },
+            "Límite de RPM / Modo de Emergencia": { "nivel": "medio", "comentario": "La transmisión entra en modo seguro (generalmente tercera marcha fija) para evitar daños." }
+        },
+        "info": "LÓGICA: El TCM controla los solenoides y la presión de la transmisión automática. Si falla, la caja actúa de forma errática o entra en modo de emergencia. ❌ No afecta el rendimiento del motor por sí mismo (excepto limitación de RPM)."
+    },
+    {
+        "nombre": "Sensor de Lluvia y Luz (Confort)",
+        "dtc": "B1160 - B1165, U0235",
+        "clave": {
+            "Sistemas de Confort Automatizados (Lluvia, Luz, Espejos)": { "nivel": "fuerte", "comentario": "Los limpiaparabrisas automáticos no se activan (o lo hacen erráticamente). Las luces automáticas no encienden (o no apagan)[reference:49][reference:50][reference:51][reference:52]." },
+            "Falla General del Sistema Eléctrico": { "nivel": "debil", "comentario": "Puede haber interferencia con otros sistemas, pero es poco común." }
+        },
+        "info": "LÓGICA: Sensor óptico montado en el parabrisas que detecta lluvia y luminosidad. Su falla solo afecta funciones de confort. ❌ No afecta el motor, frenos ni seguridad al conducir (las luces se pueden operar manualmente)."
+    },
+    {
+        "nombre": "Sensor de Presión del Aire Acondicionado (A/C)",
+        "dtc": "P0530 - P0534",
+        "clave": {
+            "Aire Acondicionado No Enfría o No Calienta": { "nivel": "fuerte", "comentario": "El compresor no se activa porque la ECU recibe una presión incorrecta (baja, alta o errática). El A/C no enfría o trabaja de forma intermitente[reference:53][reference:54]." }
+        },
+        "info": "LÓGICA: El sensor de presión protege el circuito de A/C. Si detecta presión anormal (o falla), la ECU desactiva el compresor para evitar daños. ❌ No causa fallos de motor ni de rendimiento del vehículo."
+    },
+    {
+    "nombre": "Sistema de Arranque (Motor de Arranque, Solenoide, Bendix, Switch)",
+    "dtc": "P0562, P0563, P0615, P0616, P0617",
+
+    "clave": {
+        "Problemas de Arranque": {
+            "nivel": "fuerte",
+            "comentario": "El síntoma principal de cualquier falla en este sistema. El motor no arranca, arranca con dificultad, o lo hace de forma intermitente. Desde una batería descargada hasta un motor de arranque averiado pueden ser la causa[reference:13]."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La luz de la batería es clave aquí. Un fallo en el switch de encendido puede causar parpadeos en el tablero[reference:14]. Una batería en mal estado también activa testigos."
+        },
+        "Falla General del Sistema Eléctrico": {
+            "nivel": "fuerte",
+            "comentario": "Se manifiesta de varias formas: el motor de arranque gira muy lento, las luces se atenúan al intentar arrancar, o el comportamiento eléctrico es errático al girar la llave. Todo apunta a problemas de suministro de corriente (batería, conexiones o switch)[reference:15][reference:16]."
+        },
+        "Ruidos Metálicos o Golpeteos en el Motor": {
+            "nivel": "fuerte",
+            "comentario": "Agrupa tres ruidos distintos: 1) 'Clics rápidos' por batería baja[reference:17]. 2) 'Zumbido' del motor de arranque sin girar el motor por un bendix atascado[reference:18]. 3) 'Rechinido metálico' al arrancar por desgaste en el bendix o el volante del motor[reference:19]."
+        },
+        "Falla en Frío o Caliente": {
+            "nivel": "fuerte",
+            "comentario": "Un síntoma clásico. El vehículo arranca bien en frío pero se niega a hacerlo cuando el motor está caliente. Indica un componente eléctrico (solenoide o motor de arranque) que falla al alcanzar cierta temperatura."
+        },
+        "Problemas de Apagado": {
+            "nivel": "debil",
+            "comentario": "Aunque menos común, un switch de encendido defectuoso puede causar que el motor arranque y se apague inmediatamente al soltar la llave, o incluso que se apague mientras se conduce[reference:20]."
+        },
+        "Humo Anormal por el Escape": {
+            "nivel": "nada",
+            "comentario": "❌ El sistema de arranque no genera humo por el escape. Este síntoma apunta a fallos de combustible."
+        },
+        "Olor Inusual (Gasolina, Químicos, etc.)": {
+            "nivel": "nada",
+            "comentario": "❌ El sistema de arranque no produce olores. Si hay olor a quemado en el motor, revisar el motor de arranque directamente."
+        }
+    },
+
+    "info": "LÓGICA: El sistema de arranque convierte la energía eléctrica de la batería en movimiento mecánico para girar el motor. Integra la batería (fuente de energía), el switch de encendido (quien da la orden), el relé, el solenoide y el motor de arranque con su bendix. ✅ Síntomas principales: No arranca, ruidos de clics o zumbidos, arranque lento y luces que se atenúan. ❌ No causa humo, olores extraños, explosiones, ni fallas en marcha una vez que el motor ya está funcionando."
+},
+{
+    "nombre": "Batería",
+    "dtc": "P0562, P0563, P2500, P2501, P2502, P2503",
+
+    "clave": {
+
+        "Problemas de Arranque": {
+            "nivel": "fuerte",
+            "comentario": "El vehículo puede no arrancar, hacerlo con lentitud, o solo hacerlo tras varios intentos. Es el síntoma más característico de una batería descargada o débil[reference:36]. El sonido de 'clics' rápidos es un síntoma muy específico[reference:37]."
+        },
+
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "medio",
+            "comentario": "Aunque es un síntoma más frecuente del alternador, una batería en mal estado puede no lograr estabilizar el voltaje justo después del arranque, provocando que el motor se cale inmediatamente[reference:38]."
+        },
+
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "debil",
+            "comentario": "Una chispa débil por bajo voltaje puede afectar la combustión y generar una ligera pérdida de potencia o tirones, aunque no es el síntoma más común[reference:39]."
+        },
+
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "debil",
+            "comentario": "El bajo voltaje puede afectar a múltiples sensores y al sistema de encendido, provocando un ralentí errático o pequeñas vibraciones[reference:40]."
+        },
+
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La luz de advertencia de la batería o del sistema de carga es un síntoma directo[reference:41]. Además, una batería débil puede generar múltiples códigos de error falsos que encienden el 'Check Engine'[reference:42]."
+        },
+
+        "Olor Inusual (Gasolina, Químicos, etc.)": {
+            "nivel": "fuerte",
+            "comentario": "La aparición de un fuerte olor a azufre o huevo podrido es un indicador inequívoco de que la batería está dañada, emitiendo gas hidrógeno y sulfuro de hidrógeno por una fuga o sobrecarga[reference:43]."
+        },
+
+        "Falla General del Sistema Eléctrico": {
+            "nivel": "fuerte",
+            "comentario": "Este agrupa múltiples fallos: faros y luces del tablero tenues o parpadeantes, ventanas eléctricas lentas, radio o sistema multimedia que se reinician. Es la consecuencia directa de la incapacidad de la batería para mantener un voltaje estable[reference:44][reference:45]."
+        },
+
+        "Falla en Frío o Caliente": {
+            "nivel": "fuerte",
+            "comentario": "El rendimiento de la batería es extremadamente dependiente de la temperatura. El frío enlentece sus reacciones químicas (falla en frío) y el calor acelera su deterioro y corrosión interna (falla en caliente)[reference:46]."
+        },
+
+        "Consumo Excesivo de Combustible": {
+            "nivel": "debil",
+            "comentario": "Una combustión ineficiente por baja tensión en el sistema de encendido puede aumentar ligeramente el consumo[reference:47]."
+        },
+
+        "Explosiones (por Escape o Admisión)": {
+            "nivel": "debil",
+            "comentario": "Un bajo voltaje puede provocar una chispa débil e intermitente, causando que el combustible no quemado explote en el escape ('backfire' o 'escupida')[reference:48][reference:49]."
+        }
+    },
+
+    "info": "LÓGICA: La batería almacena la energía química necesaria para el arranque y estabiliza el voltaje del sistema eléctrico. Su falla se manifiesta principalmente en problemas de arranque, luces de advertencia y fallos eléctricos generales (luces tenues, ventanas lentas). Un olor a huevo podrido o una caja hinchada son señales de daño físico interno. ❌ No genera humo por el escape ni ruidos en el motor."
+}
+
   // ... el resto de tus sensores irían aquí.
 ];
    const contenedorSintomas = document.getElementById("sintomas_container");
@@ -1127,13 +1360,16 @@ function diagnosticar() {
 
     let resultados = [];
 
-    // 📌 ASIGNAMOS PESO SEGÚN TU CLASIFICACIÓN
+    // PESOS SEGÚN NIVEL
     const pesoValor = {
         "fuerte": 3,
         "medio": 2,
         "debil": 1,
         "nada": 0
     };
+
+    // Orden de niveles para mostrar dentro del sensor
+    const ordenNivel = { "fuerte": 3, "medio": 2, "debil": 1 };
 
     sensores.forEach(s => {
 
@@ -1142,24 +1378,14 @@ function diagnosticar() {
         let coincidenciasDetalles = [];
 
         seleccionados.forEach(sel => {
-
-            // ✅ NUEVO FORMATO
-            // s.clave[sel].nivel
-            // s.clave[sel].comentario
-
             if (s.clave.hasOwnProperty(sel)) {
-
                 cantidadCoincidencias++;
-
                 let nivel = s.clave[sel].nivel;
                 let comentario = s.clave[sel].comentario;
-
                 let puntos = pesoValor[nivel] || 0;
-
                 puntajeTotal += puntos;
-
                 coincidenciasDetalles.push({
-                    nombre: sel.replaceAll("_", " "),
+                    nombre: sel,  // conservamos el original para evitar replaces innecesarios
                     nivel: nivel.toUpperCase(),
                     comentario: comentario,
                     puntos: puntos
@@ -1168,6 +1394,11 @@ function diagnosticar() {
         });
 
         if (cantidadCoincidencias > 0) {
+            // Ordenar los síntomas coincidentes de más fuerte a más débil
+            coincidenciasDetalles.sort((a, b) => {
+                return (ordenNivel[b.nivel.toLowerCase()] || 0) - (ordenNivel[a.nivel.toLowerCase()] || 0);
+            });
+
             resultados.push({
                 ...s,
                 cantidadCoincidencias,
@@ -1177,67 +1408,43 @@ function diagnosticar() {
         }
     });
 
-    // 📌 ORDENAMOS
-    resultados = resultados.sort((a, b) => {
-
-        if (b.puntajeTotal !== a.puntajeTotal) {
-            return b.puntajeTotal - a.puntajeTotal;
-        }
-
+    // Ordenar sensores por puntaje total (mayor a menor)
+    resultados.sort((a, b) => {
+        if (b.puntajeTotal !== a.puntajeTotal) return b.puntajeTotal - a.puntajeTotal;
         return b.cantidadCoincidencias - a.cantidadCoincidencias;
     });
 
-    // ✅ TOP RESULTADOS
-    const topResultados = resultados.slice(0, 5);
-
+    // AHORA MOSTRAMOS TODOS LOS RESULTADOS (sin límite)
     let html = "";
 
-    if (topResultados.length === 0) {
-
-        html = `
-            <div class='alert alert-danger'>
-                No se encontraron coincidencias.
-            </div>
-        `;
-
+    if (resultados.length === 0) {
+        html = `<div class='alert alert-danger'>No se encontraron coincidencias.</div>`;
     } else {
+        html = `<h5 class="text-info mb-3">🔎 Todos los sensores con coincidencias (ordenados por relevancia):</h5>`;
 
-        html = `
-            <h5 class="text-info mb-3">
-                🔎 Principales sospechosos ordenados por probabilidad:
-            </h5>
-        `;
-
-        topResultados.forEach((r, index) => {
-
+        resultados.forEach((r, index) => {
             let bordeColor, etiqueta;
+            const pos = index + 1;  // posición real
 
-            switch (index) {
-
-                case 0:
-                    bordeColor = "#28a745";
-                    etiqueta = `<span class="badge bg-success text-white mb-2">✅ 1° MAYOR PROBABILIDAD</span>`;
-                    break;
-
-                case 1:
-                    bordeColor = "#ffc107";
-                    etiqueta = `<span class="badge bg-warning text-dark mb-2">⚠️ 2° OPCIÓN</span>`;
-                    break;
-
-                case 2:
-                    bordeColor = "#17a2b8";
-                    etiqueta = `<span class="badge bg-info text-white mb-2">ℹ️ 3° OPCIÓN</span>`;
-                    break;
-
-                case 3:
-                    bordeColor = "#6c757d";
-                    etiqueta = `<span class="badge bg-secondary text-white mb-2">🔍 4° OPCIÓN</span>`;
-                    break;
-
-                case 4:
-                    bordeColor = "blue";
-                    etiqueta = `<span class="badge bg-primary text-white mb-2">🔍 5° OPCIÓN</span>`;
-                    break;
+            // Asignar color y badge según posición (top 5 destacados, resto genérico)
+            if (pos === 1) {
+                bordeColor = "#28a745";
+                etiqueta = `<span class="badge bg-success text-white mb-2">🏆 1º - MAYOR PROBABILIDAD</span>`;
+            } else if (pos === 2) {
+                bordeColor = "#ffc107";
+                etiqueta = `<span class="badge bg-warning text-dark mb-2">⚠️ 2º OPCIÓN</span>`;
+            } else if (pos === 3) {
+                bordeColor = "#17a2b8";
+                etiqueta = `<span class="badge bg-info text-white mb-2">ℹ️ 3º OPCIÓN</span>`;
+            } else if (pos === 4) {
+                bordeColor = "#6c757d";
+                etiqueta = `<span class="badge bg-secondary text-white mb-2">🔍 4º OPCIÓN</span>`;
+            } else if (pos === 5) {
+                bordeColor = "#0d6efd";
+                etiqueta = `<span class="badge bg-primary text-white mb-2">🔍 5º OPCIÓN</span>`;
+            } else {
+                bordeColor = "#343a40";
+                etiqueta = `<span class="badge bg-dark text-white mb-2">🔧 ${pos}º - POSIBLE CAUSA</span>`;
             }
 
             html += `
@@ -1252,70 +1459,24 @@ function diagnosticar() {
                     </div>
 
                     <h4 class="text-light">${r.nombre}</h4>
+                    <div class="codigo-dtc text-info mb-2">Posibles DTC: ${r.dtc}</div>
 
-                    <div class="codigo-dtc text-info mb-2">
-                        Posibles DTC: ${r.dtc}
-                    </div>
-
-                    <!-- ✅ MOSTRAR CLAVES + COMENTARIOS -->
                     <div class="match-list text-light mb-3">
-
-                        <strong>Coincidencias detectadas:</strong><br>
-
-                        ${r.coincidenciasDetalles.map(c => `
-
-                            <div style="
-                                background:#27293d;
-                                padding:8px;
-                                border-radius:5px;
-                                margin-bottom:10px;
-                                border-left:4px solid ${
-                                    c.nivel === 'FUERTE'
-                                    ? '#28a745'
-                                    : c.nivel === 'MEDIO'
-                                    ? '#ffc107'
-                                    : '#17a2b8'
-                                };
-                            ">
-
-                                <div>
-                                    🔹 <strong>${c.nombre}</strong>
+                        <strong>Coincidencias detectadas (ordenadas por fuerza):</strong><br>
+                        ${r.coincidenciasDetalles.map(c => {
+                            let nivelBajo = c.nivel.toLowerCase();
+                            let colorNivel = nivelBajo === 'fuerte' ? '#28a745' : (nivelBajo === 'medio' ? '#ffc107' : '#17a2b8');
+                            return `
+                                <div style="background:#27293d; padding:8px; border-radius:5px; margin-bottom:10px; border-left:4px solid ${colorNivel};">
+                                    <div>🔹 <strong>${c.nombre}</strong></div>
+                                    <div>Nivel: <strong style="color:${colorNivel};">${c.nivel}</strong> (${c.puntos} pts)</div>
+                                    <div style="margin-top:5px; color:#d6d6d6;">🧠 ${c.comentario}</div>
                                 </div>
-
-                                <div>
-                                    Nivel:
-                                    <strong style="
-                                        color:${
-                                            c.nivel === 'FUERTE'
-                                            ? '#28a745'
-                                            : c.nivel === 'MEDIO'
-                                            ? '#ffc107'
-                                            : '#17a2b8'
-                                        }
-                                    ">
-                                        ${c.nivel}
-                                    </strong>
-                                    (${c.puntos} pts)
-                                </div>
-
-                                <div style="margin-top:5px; color:#d6d6d6;">
-                                    🧠 ${c.comentario}
-                                </div>
-
-                            </div>
-
-                        `).join("")}
-
+                            `;
+                        }).join("")}
                     </div>
 
-                    <pre style="
-                        background:#27293d;
-                        color:#e0e0e0;
-                        padding:8px;
-                        border-radius:4px;
-                        white-space:pre-wrap;
-                    ">${r.info}</pre>
-
+                    <pre style="background:#27293d; color:#e0e0e0; padding:8px; border-radius:4px; white-space:pre-wrap;">${r.info}</pre>
                 </div>
             `;
         });
