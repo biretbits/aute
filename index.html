@@ -1341,7 +1341,6 @@ listaSintomas.sort().forEach(s => {
 });
 
 /* ================= LÓGICA DE DIAGNÓSTICO (SUMA) ================= */
-/* ================= LÓGICA DE DIAGNÓSTICO (TOP 4) - VERSIÓN MEJORADA POR PESO ================= */
 function diagnosticar() {
 
     const seleccionados = [...document.querySelectorAll("input:checked")]
@@ -1377,6 +1376,11 @@ function diagnosticar() {
         let puntajeTotal = 0;
         let coincidenciasDetalles = [];
 
+        // CONTADORES ESPECÍFICOS POR NIVEL
+        let contadorFuerte = 0;
+        let contadorMedio = 0;
+        let contadorDebil = 0;
+
         seleccionados.forEach(sel => {
             if (s.clave.hasOwnProperty(sel)) {
                 cantidadCoincidencias++;
@@ -1384,8 +1388,14 @@ function diagnosticar() {
                 let comentario = s.clave[sel].comentario;
                 let puntos = pesoValor[nivel] || 0;
                 puntajeTotal += puntos;
+
+                // Incrementar contador según nivel
+                if (nivel === "fuerte") contadorFuerte++;
+                else if (nivel === "medio") contadorMedio++;
+                else if (nivel === "debil") contadorDebil++;
+
                 coincidenciasDetalles.push({
-                    nombre: sel,  // conservamos el original para evitar replaces innecesarios
+                    nombre: sel,
                     nivel: nivel.toUpperCase(),
                     comentario: comentario,
                     puntos: puntos
@@ -1403,18 +1413,37 @@ function diagnosticar() {
                 ...s,
                 cantidadCoincidencias,
                 puntajeTotal,
-                coincidenciasDetalles
+                coincidenciasDetalles,
+                contadorFuerte,
+                contadorMedio,
+                contadorDebil
             });
         }
     });
 
-    // Ordenar sensores por puntaje total (mayor a menor)
+    // ORDENACIÓN JERÁRQUICA:
+    // 1) Más "fuerte" primero (mayor a menor)
+    // 2) Si igual, más "medio"
+    // 3) Si igual, más "débil"
+    // 4) Si igual, mayor puntaje total
+    // 5) Si igual, mayor cantidad de coincidencias
     resultados.sort((a, b) => {
-        if (b.puntajeTotal !== a.puntajeTotal) return b.puntajeTotal - a.puntajeTotal;
+        if (a.contadorFuerte !== b.contadorFuerte) {
+            return b.contadorFuerte - a.contadorFuerte;
+        }
+        if (a.contadorMedio !== b.contadorMedio) {
+            return b.contadorMedio - a.contadorMedio;
+        }
+        if (a.contadorDebil !== b.contadorDebil) {
+            return b.contadorDebil - a.contadorDebil;
+        }
+        if (a.puntajeTotal !== b.puntajeTotal) {
+            return b.puntajeTotal - a.puntajeTotal;
+        }
         return b.cantidadCoincidencias - a.cantidadCoincidencias;
     });
 
-    // AHORA MOSTRAMOS TODOS LOS RESULTADOS (sin límite)
+    // MOSTRAMOS TODOS LOS RESULTADOS
     let html = "";
 
     if (resultados.length === 0) {
@@ -1424,7 +1453,7 @@ function diagnosticar() {
 
         resultados.forEach((r, index) => {
             let bordeColor, etiqueta;
-            const pos = index + 1;  // posición real
+            const pos = index + 1;
 
             // Asignar color y badge según posición (top 5 destacados, resto genérico)
             if (pos === 1) {
@@ -1447,6 +1476,12 @@ function diagnosticar() {
                 etiqueta = `<span class="badge bg-dark text-white mb-2">🔧 ${pos}º - POSIBLE CAUSA</span>`;
             }
 
+            // Mostrar resumen de niveles en el badge
+            let resumenNiveles = "";
+            if (r.contadorFuerte > 0) resumenNiveles += `<span style="color:#28a745;">● ${r.contadorFuerte} fuerte</span> `;
+            if (r.contadorMedio > 0) resumenNiveles += `<span style="color:#ffc107;">● ${r.contadorMedio} medio</span> `;
+            if (r.contadorDebil > 0) resumenNiveles += `<span style="color:#17a2b8;">● ${r.contadorDebil} débil</span> `;
+
             html += `
                 <div class="sensor-card"
                      style="border-left:6px solid ${bordeColor}; padding:15px; margin-bottom:15px; background:#1e1e2e; border-radius:5px">
@@ -1455,7 +1490,8 @@ function diagnosticar() {
 
                     <div class="puntaje-badge mb-2">
                         📊 ${r.cantidadCoincidencias} síntomas coincidentes |
-                        Peso total: <strong>${r.puntajeTotal} pts</strong>
+                        Peso total: <strong>${r.puntajeTotal} pts</strong><br>
+                        ${resumenNiveles}
                     </div>
 
                     <h4 class="text-light">${r.nombre}</h4>
@@ -1484,6 +1520,7 @@ function diagnosticar() {
 
     resultContainer.innerHTML = html;
 }
+
 </script>
 
 </body>
