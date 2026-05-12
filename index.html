@@ -173,15 +173,18 @@
 </div>
 
 <script>
-const listaSintomas = [
+
+/*const listaSintomas = [
     // --- Arranque y Apagado ---
     "no_arranca", "arranque_largo", "arranque_dificil", "se_apaga", "apagones_intermitentes",
+    "enciende_normal_luego_se_apaga", "se_apaga_al_detener", "falla_intermitente",
 
     // --- Potencia y Marcha ---
     "jalonea", "perdida_potencia", "no_acelera", "modo_emergencia", "falla_en_subida",
     "tironea_acelerando", "se_ahoga", "cascabelea", "tiembla_en_recorrido", "vibra_en_recorrido",
     "limitado_a_3000_rpm", "respuesta_lenta_acelerador", "pedal_no_responde",
     "no_mejora_al_acelerar", "mejora_al_acelerar", "falta_de_fuerza_progresiva",
+    "motor_perezoso", "vibracion_se_disimula_al_acelerar",
 
     // --- Ralentí y Vibraciones ---
     "ralenti_inestable", "ralenti_alto", "ralenti_bajo", "rpm_altas", "rpm_suben_y_bajan",
@@ -202,130 +205,896 @@ const listaSintomas = [
 
     // --- Presiones y Sistemas ---
     "baja_presion_combustible", "alta_presion_combustible", "tacometro_no", "caja_golpea",
-    "sin_chispa", "sin_inyeccion", "misfire", "senal_erratica", "sincronizacion_perdida",
+    "sin_chispa", "sin_inyeccion",
+    // ⚠️ AQUÍ EL CAMBIO PRINCIPAL: quité "misfire" y puse estos dos
+    "falla_en_un_cilindro", "falla_en_todos_los_cilindros",
+    "senal_erratica", "sincronizacion_perdida",
     "sincronizacion_acelerador", "falla_aceleracion", "avance_atrasado",
 
     // --- Catalizador y Escape ---
     "convertidor_sobrecalentado", "baja_eficiencia_catalizador",
 
     // --- Electrónica ---
-    "codigo_correlacion_pedal","luz_aceite_encendida", "presion_aceite_baja", "zumbido_motor", "ruido_bielas", "falla_levas", "testigo_rojo", "marca_erratico", "sin_presion",
-"enciende_normal_luego_se_apaga","se_apaga_al_detener","falla_intermitente","check_engine","vibracion_se_disimula_al_acelerar",
-"motor_perezoso","check_engine_intermitente",
-];const sensores = [
-        // --- GRUPO 1: SINCRONIZACIÓN Y TIEMPO ---
-        {
-            nombre: "Sensor CKP (Cigüeñal)",
-            dtc: "P0335 - P0338",
-            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","no_arranca", "sin_chispa", "sin_inyeccion", "tacometro_no", "se_apaga", "apagones_intermitentes", "falla_caliente", "senal_erratica", "arranque_largo", "jalonea", "perdida_potencia", "ralenti_inestable", "misfire", "consume_mucho"],
-            info: "LÓGICA: Si falla, la ECU no sabe que el motor gira. El tacómetro en 0 mientras das marcha es la prueba reina."
-        },
-        {
-            nombre: "Sensor CMP (Árbol de Levas)",
-            dtc: "P0340 - P0344",
-            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","arranque_largo", "perdida_potencia", "no_arranca", "jalonea", "misfire", "ralenti_inestable", "sincronizacion_perdida", "consumo_alto", "arranque_dificil", "modo_seguro", "falla_en_subida"],
-            info: "LÓGICA: Sincroniza la secuencia de inyección. Sin él, la ECU 'adivina' el tiempo, causando pérdida de potencia al exigir carga."
+    "codigo_correlacion_pedal","luz_aceite_encendida", "presion_aceite_baja", "zumbido_motor",
+    "ruido_bielas", "falla_levas", "testigo_rojo", "marca_erratico", "sin_presion",
+    "check_engine", "check_engine_intermitente","casi_se_apaga_en_parado","casi_se_apaga_en_corrido",
+
+      "mejora_un_poco_al_acelerar",
+];*/
+const listaSintomas = [
+    "Problemas de Arranque",
+    "Problemas de Apagado (en marcha o ralentí)",
+    "Falta de Potencia / Aceleración Lenta",
+    "Ralentí Inestable / Motor Tiembla",
+    "Vibración Durante la Marcha",
+    "Humo Anormal por el Escape",
+    "Olor Inusual (Gasolina, Químicos, etc.)",
+    "Consumo Excesivo de Combustible",
+    "Motor se Sobrecalienta",
+    "Falla en Frío o Caliente",
+    "Ruidos Metálicos o Golpeteos en el Motor",
+    "Explosiones (por Escape o Admisión)",
+    "Luces de Advertencia Encendidas (Check Engine, Aceite, Batería, etc.)",
+    "No Hay Chispa o Inyección",
+    "Dificultad para Cambiar Marchas (Transmisión)",
+    "Límite de RPM / Modo de Emergencia",
+    "Caja Automática Golpea o Desliza",
+    "Pérdida de Frenado o Dirección Asistida",
+    "Baja Presión de Aceite o Combustible (Testigo)",
+    "Falla General del Sistema Eléctrico"
+];
+const sensores = [
+    // --- GRUPO 1: SINCRONIZACIÓN Y TIEMPO ---
+    {
+        "nombre": "Sensor CKP (Cigüeñal)",
+        "dtc": "P0335 - P0338",
+
+        "clave": {
+
+            "Problemas de Arranque": {
+                "nivel": "fuerte",
+                "comentario": "El CKP informa la posición y velocidad del cigüeñal. Sin esta señal, la ECU no sabe cuándo activar chispa ni inyección, provocando arranque largo o que el motor no arranque."
+            },
+
+            "Problemas de Apagado (en marcha o ralentí)": {
+                "nivel": "fuerte",
+                "comentario": "Si la señal CKP se pierde mientras el motor está funcionando, la ECU corta chispa e inyección por pérdida de sincronización y el motor se apaga."
+            },
+
+            "Falta de Potencia / Aceleración Lenta": {
+                "nivel": "fuerte",
+                "comentario": "Una señal CKP errática altera el tiempo de encendido e inyección. El motor pierde fuerza, responde lento y puede jalonear."
+            },
+
+            "Ralentí Inestable / Motor Tiembla": {
+                "nivel": "medio",
+                "comentario": "Cuando la señal CKP es intermitente, la ECU corrige constantemente la sincronización, causando RPM inestables y vibraciones."
+            },
+
+            "Vibración Durante la Marcha": {
+                "nivel": "medio",
+                "comentario": "La pérdida momentánea de sincronización genera tirones o vibraciones mientras el vehículo está en movimiento."
+            },
+
+            "Consumo Excesivo de Combustible": {
+                "nivel": "debil",
+                "comentario": "La combustión puede volverse ineficiente por mala sincronización, pero normalmente NO es el síntoma principal del CKP."
+            },
+
+            "Falla en Frío o Caliente": {
+                "nivel": "fuerte",
+                "comentario": "Muchos sensores CKP fallan con temperatura. Al calentarse, la señal puede desaparecer de forma intermitente."
+            },
+
+            "Luces de Advertencia Encendidas": {
+                "nivel": "fuerte",
+                "comentario": "La ECU detecta pérdida o incoherencia en la señal CKP y activa el Check Engine."
+            },
+
+            "No Hay Chispa o Inyección": {
+                "nivel": "fuerte",
+                "comentario": "El CKP es la referencia principal de sincronización. Sin señal, muchos vehículos bloquean completamente chispa e inyección."
+            },
+
+            "Límite de RPM / Modo de Emergencia": {
+                "nivel": "fuerte",
+                "comentario": "Si la señal CKP es errática pero aún existe parcialmente, la ECU puede limitar RPM para proteger el motor."
+            },
+
+            "Tacómetro Errático": {
+                "nivel": "fuerte",
+                "comentario": "El tacómetro normalmente usa la señal CKP. Si la señal falla, la aguja puede caer a cero o fluctuar."
+            }
         },
 
-        // --- GRUPO 2: FLUJO Y PRESIÓN DE AIRE ---
-        {
-            nombre: "Sensor MAF (Flujo de Aire)",
-            dtc: "P0100 - P0104",
-            clave: ["check_engine","check_engine_intermitente","falla_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","rpm_suben_y_bajan","motor_perezoso","enciende_normal_luego_se_apaga","tiembla_en_recorrido", "humo_negro", "jalonea", "se_ahoga", "mezcla_pobre", "mezcla_rica", "perdida_potencia", "consumo_alto", "ralenti_inestable", "se_apaga", "apagones_intermitentes", "respuesta_lenta_acelerador", "arranque_largo", "olor_gasolina", "misfire", "falla_en_subida"],
-            info: "LÓGICA: Mide el peso del aire que entra. Si falla, tiembla en parado y al acelerar la falla se disimula pero no desaparece."
+        "info": "Si falla parcial/intermitente → tirones, pérdida de potencia, apagones intermitentes. Si falla totalmente → no arranca o se apaga completamente. ❌ Nunca afecta solo un cilindro."
+    },
+    {
+    "nombre": "Sensor CMP (Árbol de Levas)",
+    "dtc": "P0340 - P0344",
+
+    "clave": {
+
+        "Problemas de Arranque": {
+            "nivel": "fuerte",
+            "comentario": "El CMP informa la posición del árbol de levas para sincronizar correctamente la inyección y encendido. Si la señal falla, el arranque puede ser largo o el motor no arrancar."
         },
-        {
-              nombre: "Sensor MAP (Presión Absoluta)",
-              dtc: "P0105 - P0109",
-              clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","motor_perezoso","vibra_en_recorrido", "falla_en_subida", "motor_cabecea", "explosiones_admision", "perdida_potencia", "jalonea", "ralenti_inestable", "consumo_alto", "arranque_dificil", "se_apaga", "humo_negro", "mezcla_pobre", "mezcla_rica", "respuesta_lenta_acelerador", "misfire"],
-              info: "LÓGICA: Mide el vacío en el múltiple. Es vital para calcular la mezcla y el avance del encendido, especialmente cuando el motor hace fuerza en subidas."
-          },
-          {
-              nombre: "Sensor IAT (Temperatura de Aire)",
-              dtc: "P0110 - P0113",
-              clave: ["check_engine","check_engine_intermitente","falla_frio","motor_perezoso","consume_mucho", "mezcla_rica", "arranque_largo", "ralenti_inestable", "perdida_potencia", "mezcla_pobre", "arranque_dificil", "se_ahoga", "humo_negro", "respuesta_lenta_acelerador", "misfire", "se_apaga"],
-              info: "LÓGICA: Mide la temperatura del aire para calcular su densidad. Si marca mal, la ECU ajusta mal la mezcla: en frío le falta gasolina y falla, en caliente puede enriquecer demasiado."
-          },
-        // --- GRUPO 3: COMBUSTIBLE Y PRESIÓN ---
-        {
-            nombre: "Sensor FRP (Presión del Riel)",
-            dtc: "P0190 - P0193",
-            clave: ["check_engine","check_engine_intermitente","alta_presion_combustible", "baja_presion_combustible", "modo_emergencia", "jalonea", "no_arranca", "arranque_largo", "perdida_potencia","motor_perezoso", "se_apaga", "ralenti_inestable", "mezcla_pobre", "mezcla_rica", "misfire", "consumo_alto", "respuesta_lenta_acelerador"],
-            info: "LÓGICA: El vigía de la inyección directa/common rail. Si reporta sobrepresión, la ECU corta potencia para evitar roturas."
+
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "medio",
+            "comentario": "Si la señal CMP se vuelve errática, la sincronización de inyección puede perderse parcialmente y provocar apagones intermitentes."
         },
-        {
-            nombre: "Inyectores de Combustible (Actuador)",
-            dtc: "P0200 - P0204",
-            clave: ["check_engine","check_engine_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","falla_en_subida", "olor_gasolina", "humo_negro", "misfire", "perdida_potencia", "consume_mucho", "ralenti_inestable", "explosiones_escape", "arranque_dificil"],
-            info: "LÓGICA: Fallo de entrega. Si gotea hay humo negro; si no abre, el motor tiembla en parado y al acelerar la falla se disimula."
+
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "Una sincronización incorrecta de válvulas e inyección produce combustión ineficiente, causando pérdida importante de potencia y respuesta lenta."
         },
-        {
-            nombre: "Bomba de Combustible (Actuador)",
-            dtc: "P0087",
-            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","falla_en_subida","motor_perezoso","enciende_normal_luego_se_apaga","baja_presion_combustible", "vibra_en_recorrido", "se_apaga", "perdida_potencia", "jalonea", "arranque_largo", "no_arranca", "motor_cabecea", "se_ahoga", "apagones_intermitentes", "respuesta_lenta_acelerador", "misfire", "consumo_alto"],
-            info: "LÓGICA: Falta de caudal. En alta demanda, la presión cae y el motor vibra por hambre de combustible."
+
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "medio",
+            "comentario": "La señal incorrecta del CMP altera el tiempo de inyección y puede provocar vibraciones o RPM inestables."
         },
-        {
-            nombre: "Sensor ECT (Temperatura Refrigerante)",
-            dtc: "P0115 - P0119",
-            clave: ["check_engine","check_engine_intermitente","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","falla_frio", "falla_caliente", "sobrecalentamiento", "ventilador_prendido", "consume_mucho", "arranque_dificil", "arranque_largo", "humo_negro", "mezcla_rica", "ralenti_inestable", "se_apaga", "temperatura_tablero_erratica", "misfire", "respuesta_lenta_acelerador"],
-            info: "LÓGICA: Es el 'estrangulador' electrónico. Si marca siempre frío, el auto se ahoga en gasolina cuando ya calentó."
+
+        "Vibración Durante la Marcha": {
+            "nivel": "medio",
+            "comentario": "La combustión fuera de sincronización puede sentirse como jaloneos o vibraciones durante la conducción."
         },
-        {
-            nombre: "Sensor de Detonación (Knock)",
-            dtc: "P0325",
-            clave: ["check_engine","check_engine_intermitente","falla_en_subida","motor_perezoso","cascabelea", "perdida_potencia", "consumo_alto", "misfire", "ralenti_inestable"],
-            info: "LÓGICA: Escucha el picado de bielas. Si falla, la ECU no retrasa el tiempo y el motor se siente amarrado/perezoso."
+
+        "Humo Anormal por el Escape": {
+            "nivel": "debil",
+            "comentario": "La combustión incorrecta puede generar humo oscuro o emisiones anormales, aunque NO suele ser el síntoma principal."
         },
-        {
-            nombre: "Sonda Lambda (Oxígeno)",
-            dtc: "P0130 - P0172",
-            clave: ["check_engine","check_engine_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","rpm_suben_y_bajan","falla_en_subida","enciende_normal_luego_se_apaga","tiembla_en_recorrido", "consume_mucho", "mezcla_rica", "olor_gasolina", "mezcla_pobre", "humo_negro", "ralenti_inestable", "jalonea", "perdida_potencia", "misfire", "arranque_dificil"],
-            info: "LÓGICA: Corrige la mezcla en tiempo real. Si falla, la luz prende y apaga según la lectura."
+
+        "Olor Inusual (Gasolina, Químicos, etc.)": {
+            "nivel": "medio",
+            "comentario": "La mala sincronización puede dejar combustible sin quemar, provocando olor a gasolina."
         },
-        {
-            nombre: "Válvula EGR (Actuador)",
-            dtc: "P0400 - P0406",
-            clave: ["check_engine","check_engine_intermitente","falla_en_subida","tiembla_en_parado","motor_perezoso","se_apaga", "explosiones_admision", "ralenti_inestable", "perdida_potencia", "jalonea", "motor_cabecea", "se_ahoga", "consumo_alto", "olor_gasolina"],
-            info: "LÓGICA: Si se traba abierta, introduce gases quemados en ralentí, asfixiando la combustión."
+
+        "Consumo Excesivo de Combustible": {
+            "nivel": "medio",
+            "comentario": "La ECU puede inyectar combustible de forma incorrecta debido a la pérdida de sincronización, aumentando el consumo."
         },
-        {
-            nombre: "Sensor TPS (Posición de Mariposa)",
-            dtc: "P0120 - P0124",
-            clave: ["check_engine","check_engine_intermitente","falla_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","motor_perezoso","enciende_normal_luego_se_apaga","no_acelera", "tironea_acelerando", "jalonea", "rpm_altas", "ralenti_inestable", "aceleracion_erratica", "cambios_bruscos", "se_apaga", "consumo_alto"],
-            info: "LÓGICA: Informa cuánto abriste el aire. Si tiene punto muerto, el auto da tirones violentos."
+
+        "Falla en Frío o Caliente": {
+            "nivel": "fuerte",
+            "comentario": "Muchos CMP fallan con temperatura. El sensor puede trabajar en frío y dejar de enviar señal cuando se calienta."
         },
-        {
-            nombre: "Sensor APP (Pedal Acelerador)",
-            dtc: "P2120",
-            clave: ["check_engine","check_engine_intermitente","pedal_no_responde","motor_perezoso", "modo_emergencia", "no_acelera", "limitado_a_3000_rpm", "aceleracion_erratica", "cambios_bruscos", "se_apaga"],
-            info: "LÓGICA: Doble señal de seguridad. Si no coinciden, la luz prende y apaga."
+
+        "Explosiones (por Escape o Admisión)": {
+            "nivel": "medio",
+            "comentario": "La combustión fuera de tiempo puede provocar explosiones o petardeos en escape o admisión."
         },
-        {
-            nombre: "Válvula IAC (Actuador)",
-            dtc: "P0505 - P0507",
-            clave: ["check_engine","check_engine_intermitente","se_apaga_al_detener","rpm_suben_y_bajan","enciende_normal_luego_se_apaga","tiembla_en_parado", "ralenti_inestable", "ralenti_bajo", "ralenti_alto", "rpm_altas", "se_apaga", "arranque_dificil", "falla_frio", "apagones_intermitentes", "falla_al_encender_accesorios", "humo_negro"],
-            info: "LÓGICA: Controla el aire en mínima. Si está sucia, las RPM suben y bajan solas."
+
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU detecta problemas de sincronización o ausencia de señal CMP y activa el Check Engine."
         },
-        {
-           nombre: "Bobinas de Encendido (Actuador)",
-           dtc: "P0350 - P0362",
-           clave: ["check_engine","check_engine_intermitente","falla_intermitente","tiembla_en_parado","vibracion_se_disimula_al_acelerar","enciende_normal_luego_se_apaga","misfire", "sin_chispa", "no_arranca", "jalonea", "perdida_potencia", "explosiones_escape", "se_apaga", "falla_caliente", "falla_lluvia_humedad", "respuesta_lenta_acelerador", "consumo_alto", "falla_en_subida"],
-           info: "LÓGICA: Transforma 12V en alta tensión. Si falla, la chispa falla y la luz prende intermitente."
+
+        "No Hay Chispa o Inyección": {
+            "nivel": "debil",
+            "comentario": "En muchos vehículos la ECU puede seguir funcionando usando el CKP como respaldo, por eso NO siempre se pierde totalmente la chispa o inyección."
         },
-        {
-            nombre: "Convertidor Catalítico",
-            dtc: "P0420 - P0430",
-            clave: ["check_engine","check_engine_intermitente","falla_en_subida","motor_perezoso","perdida_potencia", "no_acelera", "se_ahoga", "modo_emergencia", "limitado_a_3000_rpm", "consumo_mucho", "sobrecalentamiento", "olor_a_huevo_podrido", "ruido_metalico", "falta_de_fuerza_progresiva", "misfire"],
-            info: "LÓGICA: Obstrucción. Si pierde fuerza subiendo o huele a azufre, la contrapresión está ahogando al motor."
-        },
-        {
-            nombre: "Sensor de Presión de Aceite",
-            dtc: "P0520 - P0523",
-            clave: ["luz_aceite_encendida", "presion_aceite_baja", "zumbido_motor", "ruido_bielas", "falla_levas", "testigo_rojo", "marca_erratico", "sin_presion"],
-            info: "LÓGICA: Mide la fuerza con la que circula el aceite. Si falla o hay baja presión, se enciende la luz ROJA de aceite."
+
+        "Límite de RPM / Modo de Emergencia": {
+            "nivel": "fuerte",
+            "comentario": "La ECU puede entrar en modo de emergencia y limitar RPM para proteger el motor cuando detecta mala sincronización."
         }
-   ];
+    },
+
+    "info": "LÓGICA: El CMP sincroniza la posición del árbol de levas con el cigüeñal. Si falla, la ECU pierde precisión en el tiempo de inyección y encendido. Puede provocar arranque difícil, pérdida de potencia y modo emergencia. ❌ NO suele afectar un solo cilindro; la falla impacta la sincronización general del motor."
+},
+{
+  "nombre": "Sensor MAF (Flujo de Aire)",
+  "dtc": "P0100 - P0104",
+
+  "clave": {
+
+      "Problemas de Arranque": {
+          "nivel": "debil",
+          "comentario": "Un cálculo incorrecto del flujo de aire puede alterar la mezcla aire/combustible y provocar arranque difícil, pero normalmente el motor logra arrancar."
+      },
+
+      "Problemas de Apagado (en marcha o ralentí)": {
+          "nivel": "debil",
+          "comentario": "Si la lectura MAF es extremadamente incorrecta, la mezcla puede volverse inestable y causar apagones ocasionales o casi apagado."
+      },
+
+      "Falta de Potencia / Aceleración Lenta": {
+          "nivel": "fuerte",
+          "comentario": "El MAF calcula el aire que entra al motor. Si mide menos o más aire del real, la mezcla se vuelve pobre o rica y el motor pierde fuerza y respuesta."
+      },
+
+      "Ralentí Inestable / Motor Tiembla": {
+          "nivel": "fuerte",
+          "comentario": "Una lectura incorrecta del flujo de aire altera la mezcla en ralentí, causando RPM inestables, vibraciones o cabeceos."
+      },
+
+      "Vibración Durante la Marcha": {
+          "nivel": "medio",
+          "comentario": "La mezcla incorrecta puede generar tirones o vibraciones leves durante aceleraciones o carga."
+      },
+
+      "Humo Anormal por el Escape": {
+          "nivel": "medio",
+          "comentario": "Una mezcla demasiado rica puede producir humo negro por exceso de combustible no quemado."
+      },
+
+      "Olor Inusual (Gasolina, Químicos, etc.)": {
+          "nivel": "medio",
+          "comentario": "El exceso de combustible provocado por lecturas erróneas puede generar olor a gasolina."
+      },
+
+      "Consumo Excesivo de Combustible": {
+          "nivel": "fuerte",
+          "comentario": "Si el MAF reporta menos aire del real, la ECU puede enriquecer excesivamente la mezcla aumentando mucho el consumo."
+      },
+
+      "Luces de Advertencia Encendidas": {
+          "nivel": "fuerte",
+          "comentario": "La ECU detecta señales fuera de rango o incoherentes del MAF y activa el Check Engine."
+      }
+  },
+
+  "info": "LÓGICA: El MAF mide la cantidad real de aire que entra al motor. Si falla, la ECU calcula mal la mezcla aire/combustible. Los síntomas principales son pérdida de potencia, ralentí inestable y consumo elevado. En muchos vehículos el motor mejora parcialmente al desconectar el MAF porque la ECU usa valores de respaldo. ❌ Afecta globalmente todo el motor."
+},
+{
+  "nombre": "Sensor MAP (Presión Absoluta)",
+  "dtc": "P0105 - P0109",
+
+  "clave": {
+
+      "Problemas de Arranque": {
+          "nivel": "debil",
+          "comentario": "Una lectura incorrecta de vacío puede alterar la mezcla durante el arranque, aunque normalmente el motor logra encender."
+      },
+
+      "Problemas de Apagado (en marcha o ralentí)": {
+          "nivel": "medio",
+          "comentario": "Si el MAP reporta presión incorrecta, la mezcla puede volverse muy pobre o rica y causar casi apagado o apagones."
+      },
+
+      "Falta de Potencia / Aceleración Lenta": {
+          "nivel": "fuerte",
+          "comentario": "El MAP informa la carga del motor. Si falla, la ECU calcula mal combustible y avance, provocando respuesta lenta y pérdida de potencia."
+      },
+
+      "Ralentí Inestable / Motor Tiembla": {
+          "nivel": "fuerte",
+          "comentario": "El síntoma más común del MAP es ralentí inestable, cabeceo y RPM fluctuantes debido a mezcla incorrecta en baja carga."
+      },
+
+      "Vibración Durante la Marcha": {
+          "nivel": "medio",
+          "comentario": "Las variaciones incorrectas de mezcla pueden sentirse como tirones o vibraciones durante la conducción."
+      },
+
+      "Humo Anormal por el Escape": {
+          "nivel": "debil",
+          "comentario": "Una mezcla rica puede producir humo oscuro, aunque NO suele ser el síntoma principal del MAP."
+      },
+
+      "Consumo Excesivo de Combustible": {
+          "nivel": "medio",
+          "comentario": "Una lectura errónea de carga puede hacer que la ECU inyecte más combustible del necesario."
+      },
+
+      "Explosiones (por Escape o Admisión)": {
+          "nivel": "debil",
+          "comentario": "Una mezcla incorrecta puede provocar pequeñas explosiones o petardeos, especialmente bajo carga."
+      },
+
+      "Luces de Advertencia Encendidas": {
+          "nivel": "fuerte",
+          "comentario": "La ECU detecta señales incorrectas o fuera de rango del MAP y registra códigos de falla."
+      }
+  },
+
+  "info": "LÓGICA: El MAP mide vacío o presión dentro del múltiple de admisión. Si la lectura es incorrecta, la ECU calcula mal la carga del motor y altera mezcla y avance. El síntoma más representativo es ralentí inestable y pérdida de potencia. ❌ Afecta globalmente la mezcla del motor."
+},
+{
+  "nombre": "Sensor IAT (Temperatura de Aire de Admisión)",
+  "dtc": "P0110 - P0113",
+
+  "clave": {
+
+      "Problemas de Arranque": {
+          "nivel": "debil",
+          "comentario": "Una lectura incorrecta de temperatura puede alterar ligeramente la mezcla durante el arranque, especialmente en frío."
+      },
+
+      "Falta de Potencia / Aceleración Lenta": {
+          "nivel": "medio",
+          "comentario": "La ECU calcula la densidad del aire usando el IAT. Si la lectura es incorrecta, la mezcla pierde eficiencia y el motor responde más lento."
+      },
+
+      "Ralentí Inestable / Motor Tiembla": {
+          "nivel": "debil",
+          "comentario": "La mezcla puede alterarse ligeramente causando pequeñas variaciones de RPM, aunque NO suele generar vibraciones severas."
+      },
+
+      "Humo Anormal por el Escape": {
+          "nivel": "debil",
+          "comentario": "Una mezcla demasiado rica por lectura errónea puede generar humo oscuro leve."
+      },
+
+      "Consumo Excesivo de Combustible": {
+          "nivel": "medio",
+          "comentario": "Si el sensor reporta aire muy frío o muy caliente incorrectamente, la ECU modifica la cantidad de combustible y aumenta el consumo."
+      },
+
+      "Falla en Frío o Caliente": {
+          "nivel": "fuerte",
+          "comentario": "El IAT influye mucho en estrategias de temperatura. Las fallas suelen sentirse más en arranque en frío o cambios de temperatura."
+      },
+
+      "Luces de Advertencia Encendidas": {
+          "nivel": "fuerte",
+          "comentario": "La ECU detecta señales fuera de rango o incoherentes del IAT y activa el Check Engine."
+      }
+  },
+
+  "info": "LÓGICA: El IAT mide la temperatura del aire de admisión para calcular densidad y mezcla. Sus fallas normalmente generan síntomas leves o moderados como consumo elevado, respuesta lenta o fallas en frío/caliente. ❌ Rara vez provoca apagados o vibraciones severas."
+},
+{
+    "nombre": "Sensor FRP (Presión del Riel de Combustible)",
+    "dtc": "P0190 - P0193",
+    "clave": {
+        "Problemas de Arranque": {
+            "nivel": "fuerte",
+            "comentario": "Si la ECU detecta presión muy baja o lectura errática del riel, el motor puede tardar mucho en arrancar o directamente no arrancar porque los inyectores no reciben suficiente combustible."
+        },
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "fuerte",
+            "comentario": "Cuando la presión cae repentinamente, el motor pierde alimentación de combustible y se apaga o casi se apaga, especialmente en ralentí o aceleración."
+        },
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "La baja presión provoca mezcla pobre y falta de caudal en los inyectores, causando motor perezoso, jaloneos y mala respuesta al acelerar."
+        },
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "medio",
+            "comentario": "La presión inestable genera variaciones en la cantidad de combustible inyectado, provocando oscilaciones o pequeñas vibraciones."
+        },
+        "Vibración Durante la Marcha": {
+            "nivel": "medio",
+            "comentario": "Las caídas momentáneas de presión pueden sentirse como jaloneos o tirones mientras el vehículo avanza."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "debil",
+            "comentario": "La ECU puede intentar compensar aumentando tiempos de inyección, pero normalmente predominan más la pérdida de potencia y apagones."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU monitorea constantemente la presión del riel y activa Check Engine cuando detecta valores fuera de rango."
+        },
+        "Límite de RPM / Modo de Emergencia": {
+            "nivel": "fuerte",
+            "comentario": "Muchos vehículos limitan potencia y RPM para proteger el sistema de inyección cuando la presión de combustible es incorrecta."
+        },
+        "Baja Presión de Aceite o Combustible (Testigo)": {
+            "nivel": "fuerte",
+            "comentario": "Es el síntoma más representativo porque el sensor monitorea directamente la presión del combustible."
+        }
+    },
+    "info": "LÓGICA: El sensor FRP informa a la ECU la presión exacta del combustible en el riel. Si la lectura es incorrecta o la presión realmente cae, la ECU no puede controlar adecuadamente la inyección. Esto genera apagones, pérdida severa de potencia, modo emergencia y dificultad de arranque. ❌ La falla afecta globalmente a TODOS los cilindros."
+},
+{
+    "nombre": "Inyectores de Combustible (Actuador)",
+    "dtc": "P0200 - P0204",
+    "clave": {
+        "Problemas de Arranque": {
+            "nivel": "debil",
+            "comentario": "Un solo inyector defectuoso normalmente no impide arrancar, pero varios inyectores fallando o uno goteando excesivamente sí pueden dificultar el arranque."
+        },
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "medio",
+            "comentario": "Si un inyector deja de trabajar o se queda abierto, el motor puede desestabilizarse y apagarse especialmente en ralentí."
+        },
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "Cuando uno o más cilindros reciben combustible incorrectamente, el motor pierde fuerza y responde mal al acelerar."
+        },
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "fuerte",
+            "comentario": "La combustión desigual entre cilindros provoca vibración fuerte, cabeceo y misfire en ralentí."
+        },
+        "Vibración Durante la Marcha": {
+            "nivel": "fuerte",
+            "comentario": "Los cilindros que fallan producen jaloneos notorios y vibraciones mientras el vehículo está en movimiento."
+        },
+        "Humo Anormal por el Escape": {
+            "nivel": "medio",
+            "comentario": "Un inyector goteando puede enriquecer demasiado la mezcla y producir humo negro o combustible sin quemar."
+        },
+        "Olor Inusual (Gasolina, Químicos, etc.)": {
+            "nivel": "fuerte",
+            "comentario": "El olor a gasolina es muy común cuando un inyector gotea o no atomiza correctamente."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "fuerte",
+            "comentario": "Los inyectores con fugas o pulverización deficiente aumentan considerablemente el consumo."
+        },
+        "Explosiones (por Escape o Admisión)": {
+            "nivel": "fuerte",
+            "comentario": "El combustible no quemado puede explotar en el escape generando petardeos."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU detecta fallas de circuito o misfire relacionados con los inyectores y activa el Check Engine."
+        },
+        "No Hay Chispa o Inyección": {
+            "nivel": "fuerte",
+            "comentario": "Si el inyector no recibe pulso o queda bloqueado, ese cilindro deja de aportar combustión."
+        }
+    },
+    "info": "LÓGICA: Un inyector defectuoso altera la mezcla de uno o varios cilindros. Esto produce misfire, vibraciones fuertes, pérdida de potencia, explosiones y olor a gasolina. ✅ A diferencia de sensores globales como CKP o MAF, SÍ puede fallar solamente un cilindro."
+},
+{
+    "nombre": "Bomba de Combustible (Actuador)",
+    "dtc": "P0087",
+    "clave": {
+        "Problemas de Arranque": {
+            "nivel": "fuerte",
+            "comentario": "Si la bomba no genera suficiente presión, el motor tarda en arrancar o directamente no arranca."
+        },
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "fuerte",
+            "comentario": "Cuando la presión cae completamente, el motor se queda sin combustible y se apaga."
+        },
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "Bajo aceleración o carga, la bomba no logra mantener el caudal necesario y el motor pierde fuerza."
+        },
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "medio",
+            "comentario": "La presión irregular puede provocar pequeñas oscilaciones o cabeceos en ralentí."
+        },
+        "Vibración Durante la Marcha": {
+            "nivel": "fuerte",
+            "comentario": "La falta intermitente de combustible produce jaloneos notorios mientras el vehículo avanza."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "debil",
+            "comentario": "La bomba defectuosa normalmente genera más falta de potencia que aumento de consumo."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU detecta presión insuficiente y registra códigos relacionados al sistema de combustible."
+        },
+        "Baja Presión de Aceite o Combustible": {
+            "nivel": "fuerte",
+            "comentario": "La baja presión de combustible es el síntoma principal y más representativo."
+        }
+    },
+    "info": "LÓGICA: La bomba suministra el combustible hacia el riel e inyectores. Si pierde presión o caudal, el motor se queda sin alimentación suficiente, causando apagones, jaloneos y pérdida severa de potencia. ❌ La falla afecta globalmente a TODOS los cilindros."
+},
+{
+    "nombre": "Sensor ECT (Temperatura Refrigerante)",
+    "dtc": "P0115 - P0119",
+    "clave": {
+        "Problemas de Arranque": {
+            "nivel": "fuerte",
+            "comentario": "Si el sensor informa temperatura incorrecta, la ECU calcula mal la mezcla de arranque, especialmente en frío."
+        },
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "debil",
+            "comentario": "Solo en casos extremos la mezcla puede volverse tan rica o pobre que el motor llegue a apagarse."
+        },
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "medio",
+            "comentario": "Una mezcla incorrecta afecta el rendimiento y puede hacer que el motor responda lentamente."
+        },
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "medio",
+            "comentario": "La ECU modifica la inyección y ralentí basándose en temperatura; si la lectura es falsa, el ralentí se vuelve irregular."
+        },
+        "Humo Anormal por el Escape": {
+            "nivel": "fuerte",
+            "comentario": "Si el sensor marca motor frío constantemente, la ECU enriquece demasiado la mezcla y produce humo negro."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "fuerte",
+            "comentario": "El exceso de combustible por lectura falsa de baja temperatura aumenta mucho el consumo."
+        },
+        "Motor se Sobrecalienta": {
+            "nivel": "debil",
+            "comentario": "El sensor no genera el sobrecalentamiento directamente, pero puede impedir que el ventilador se active correctamente."
+        },
+        "Falla en Frío o Caliente": {
+            "nivel": "fuerte",
+            "comentario": "Las fallas suelen aparecer específicamente en frío o caliente debido al cálculo erróneo de temperatura."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU monitorea continuamente el rango de temperatura y activa Check Engine ante valores ilógicos."
+        }
+    },
+    "info": "LÓGICA: El sensor ECT informa la temperatura del motor para ajustar mezcla, ralentí, ventiladores y avance. Si la lectura es errónea, la ECU sobreinyecta o empobrece la mezcla causando consumo alto, humo negro, fallas en frío y ralentí irregular. ❌ Afecta globalmente todo el motor."
+},
+{
+    "nombre": "Sensor de Detonación (Knock)",
+    "dtc": "P0325 - P0334",
+    "clave": {
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "Cuando la ECU detecta detonación o pierde confianza en la señal del sensor, retrasa el avance de encendido para proteger el motor. Esto reduce notablemente la potencia y hace que el motor se sienta pesado."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "debil",
+            "comentario": "El retraso del encendido disminuye la eficiencia de combustión y puede aumentar ligeramente el consumo, pero no suele ser el síntoma principal."
+        },
+        "Ruidos Metálicos o Golpeteos en el Motor": {
+            "nivel": "fuerte",
+            "comentario": "El cascabeleo o golpeteo metálico bajo carga es el síntoma más característico cuando existe detonación y el sistema no logra corregirla correctamente."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU monitorea constantemente la señal del sensor Knock y activa Check Engine cuando detecta señal fuera de rango o ausencia de respuesta."
+        },
+        "Límite de RPM / Modo de Emergencia": {
+            "nivel": "debil",
+            "comentario": "Algunos vehículos reducen potencia o limitan parcialmente el rendimiento para evitar daños internos por detonación severa."
+        }
+    },
+    "info": "LÓGICA: El sensor Knock detecta vibraciones producidas por detonación o cascabeleo. Si la ECU recibe una señal incorrecta o detecta detonación excesiva, retrasa el avance de encendido para proteger pistones y válvulas. Esto produce pérdida de potencia y golpeteo metálico bajo carga. ❌ Normalmente NO causa apagones, ralentí inestable ni problemas graves de arranque."
+},
+{
+    "nombre": "Sonda Lambda (Oxígeno)",
+    "dtc": "P0130 - P0175",
+    "clave": {
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "debil",
+            "comentario": "Una mezcla extremadamente rica o pobre puede hacer que el motor casi se apague, pero normalmente la ECU logra mantenerlo funcionando."
+        },
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "medio",
+            "comentario": "La mezcla incorrecta reduce la eficiencia de combustión y provoca respuesta lenta o sensación de motor pesado."
+        },
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "medio",
+            "comentario": "Las correcciones erráticas de mezcla pueden causar oscilaciones leves de RPM y pequeñas vibraciones."
+        },
+        "Vibración Durante la Marcha": {
+            "nivel": "medio",
+            "comentario": "La combustión inestable puede sentirse como pequeños jaloneos durante aceleración o velocidad constante."
+        },
+        "Humo Anormal por el Escape": {
+            "nivel": "fuerte",
+            "comentario": "Una mezcla demasiado rica produce humo negro y exceso de combustible sin quemar."
+        },
+        "Olor Inusual (Gasolina, Químicos, etc.)": {
+            "nivel": "fuerte",
+            "comentario": "El olor fuerte a gasolina aparece cuando la combustión es deficiente y sobra combustible en el escape."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "fuerte",
+            "comentario": "La ECU puede enriquecer demasiado la mezcla al recibir una señal incorrecta de oxígeno, aumentando considerablemente el consumo."
+        },
+        "Explosiones (por Escape o Admisión)": {
+            "nivel": "debil",
+            "comentario": "El exceso de combustible sin quemar puede provocar pequeños petardeos en el escape."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU detecta lentitud, voltajes incorrectos o falta de actividad en la sonda lambda y activa Check Engine."
+        }
+    },
+    "info": "LÓGICA: La sonda lambda mide el oxígeno en los gases de escape para corregir la mezcla aire/combustible. Si la señal es lenta o incorrecta, la ECU ajusta mal la mezcla causando humo negro, olor a gasolina, consumo elevado y pérdida moderada de potencia. ❌ Generalmente NO provoca apagones severos ni problemas graves de arranque."
+},
+{
+    "nombre": "Válvula EGR (Actuador)",
+    "dtc": "P0400 - P0406",
+    "clave": {
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "fuerte",
+            "comentario": "Si la EGR queda abierta en ralentí, entran demasiados gases de escape y la combustión se debilita hasta casi apagar el motor."
+        },
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "El exceso de gases reciclados reduce el oxígeno disponible y el motor responde lento o se ahoga al acelerar."
+        },
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "fuerte",
+            "comentario": "La EGR abierta cuando no corresponde provoca cabeceo, RPM inestables y vibración fuerte en ralentí."
+        },
+        "Vibración Durante la Marcha": {
+            "nivel": "medio",
+            "comentario": "Durante aceleración ligera o velocidad constante puede sentirse jaloneo por combustión inestable."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "debil",
+            "comentario": "La ECU puede compensar parcialmente la mala combustión aumentando combustible, aunque normalmente predominan los tirones y apagones."
+        },
+        "Explosiones (por Escape o Admisión)": {
+            "nivel": "debil",
+            "comentario": "La mezcla alterada puede producir pequeños petardeos o explosiones leves."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU monitorea el flujo y funcionamiento de la EGR y activa Check Engine cuando detecta flujo incorrecto."
+        }
+    },
+    "info": "LÓGICA: La EGR recircula gases de escape para reducir emisiones. Si se queda abierta cuando el motor está en ralentí o baja carga, debilita demasiado la combustión y provoca ahogo, vibraciones y apagones. ❌ La falla afecta globalmente al motor y no a un cilindro específico."
+},
+{
+    "nombre": "Sensor TPS (Posición de Mariposa)",
+    "dtc": "P0120 - P0124",
+    "clave": {
+        "Problemas de Apagado (en marcha o ralentí)": {
+            "nivel": "fuerte",
+            "comentario": "Si la señal del TPS tiene huecos o caídas bruscas, la ECU calcula mal la cantidad de combustible y el motor puede apagarse al desacelerar."
+        },
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "La ECU no interpreta correctamente la posición del acelerador y el motor responde lento o con tirones."
+        },
+        "Ralentí Inestable / Motor Tiembla": {
+            "nivel": "fuerte",
+            "comentario": "Las variaciones erráticas de señal alteran el control del ralentí y producen RPM inestables."
+        },
+        "Vibración Durante la Marcha": {
+            "nivel": "medio",
+            "comentario": "Los cambios bruscos de señal generan jaloneos o aceleración inconsistente mientras se conduce."
+        },
+        "Consumo Excesivo de Combustible": {
+            "nivel": "medio",
+            "comentario": "Si el TPS indica mayor apertura de la real, la ECU inyecta más combustible del necesario."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU detecta voltajes fuera de rango o señales inconsistentes del TPS y activa Check Engine."
+        }
+    },
+    "info": "LÓGICA: El TPS informa la apertura de la mariposa a la ECU. Si la señal tiene saltos, huecos o valores incorrectos, la ECU calcula mal carga, inyección y aceleración. Esto produce tirones, RPM erráticas, apagones al desacelerar y mala respuesta del acelerador. ❌ NO afecta un cilindro individual."
+},
+{
+    "nombre": "Sensor APP (Pedal Acelerador)",
+    "dtc": "P2120 - P2128",
+    "clave": {
+        "Falta de Potencia / Aceleración Lenta": {
+            "nivel": "fuerte",
+            "comentario": "Si la ECU no recibe correctamente la señal del pedal, limita la apertura electrónica de la mariposa y el vehículo casi no acelera."
+        },
+        "Luces de Advertencia Encendidas": {
+            "nivel": "fuerte",
+            "comentario": "La ECU compara constantemente las pistas internas del APP y activa Check Engine cuando detecta diferencias o voltajes anormales."
+        },
+        "Límite de RPM / Modo de Emergencia": {
+            "nivel": "fuerte",
+            "comentario": "Por seguridad, muchos vehículos entran en modo emergencia limitando RPM y respuesta del pedal para evitar aceleraciones involuntarias."
+        }
+    },
+    "info": "LÓGICA: El sensor APP informa cuánto está presionando el conductor el pedal del acelerador. Si las señales internas no coinciden o desaparecen, la ECU activa modo de protección y limita severamente la aceleración. ❌ Normalmente NO causa vibraciones, apagones ni ralentí inestable porque no controla directamente la combustión."
+},
+  {
+    "nombre": "Válvula IAC (Control de Aire en Ralentí)",
+    "dtc": "P0505 - P0507",
+    "clave": {
+      "Problemas de Arranque": {
+        "nivel": "medio",
+        "comentario": "Si la IAC queda cerrada o muy sucia, no deja pasar suficiente aire durante el arranque, especialmente en frío. El motor necesita más aire cuando recién enciende."
+      },
+      "Problemas de Apagado (en marcha o ralentí)": {
+        "nivel": "fuerte",
+        "comentario": "Es uno de los síntomas MÁS típicos. Si la IAC no regula correctamente el aire mínimo, las RPM caen demasiado al detenerse o desacelerar y el motor se apaga."
+      },
+      "Ralentí Inestable / Motor Tiembla": {
+        "nivel": "fuerte",
+        "comentario": "La IAC controla directamente las RPM en ralentí. Si se atasca o responde lento, las RPM suben y bajan, el motor cabecea o tiembla."
+      },
+      "Falla en Frío o Caliente": {
+        "nivel": "medio",
+        "comentario": "En frío el motor necesita más apertura de IAC. Si está sucia, el problema suele notarse más en arranque y ralentí frío."
+      },
+      "Luces de Advertencia Encendidas": {
+        "nivel": "fuerte",
+        "comentario": "La ECU detecta que las RPM reales no coinciden con las RPM objetivo y genera códigos relacionados al control de ralentí."
+      }
+    },
+    "info": "LÓGICA: La IAC controla el aire mínimo del motor cuando la mariposa está cerrada. Si se ensucia o atasca, las RPM suben y bajan, el motor tiembla y puede apagarse al detenerse. ✅ Es uno de los componentes MÁS representativos del ralentí inestable."
+  },
+
+  {
+    "nombre": "Bobinas de Encendido (Actuador)",
+    "dtc": "P0350 - P0362 / P0300 - P0312",
+    "clave": {
+      "Problemas de Arranque": {
+        "nivel": "debil",
+        "comentario": "Si falla una sola bobina normalmente el motor aún arranca, pero tiembla. Si fallan varias bobinas, el arranque puede volverse difícil o imposible."
+      },
+      "Problemas de Apagado (en marcha o ralentí)": {
+        "nivel": "debil",
+        "comentario": "Un misfire severo puede hacer que el motor casi se apague en ralentí, pero normalmente no es la causa principal de apagones completos."
+      },
+      "Falta de Potencia / Aceleración Lenta": {
+        "nivel": "fuerte",
+        "comentario": "Cuando un cilindro no quema correctamente, el motor pierde fuerza, responde lento y falla especialmente en subida o aceleración."
+      },
+      "Ralentí Inestable / Motor Tiembla": {
+        "nivel": "fuerte",
+        "comentario": "La combustión irregular en uno o más cilindros desequilibra el motor y produce vibración fuerte en ralentí."
+      },
+      "Vibración Durante la Marcha": {
+        "nivel": "fuerte",
+        "comentario": "El vehículo jalonea porque uno o más cilindros dejan de aportar potencia correctamente durante la marcha."
+      },
+      "Consumo Excesivo de Combustible": {
+        "nivel": "debil",
+        "comentario": "El combustible del cilindro con misfire no se quema completamente y la ECU puede enriquecer mezcla intentando compensar."
+      },
+      "Falla en Frío o Caliente": {
+        "nivel": "medio",
+        "comentario": "Muchas bobinas fallan más cuando se calientan internamente, provocando misfire después de algunos minutos."
+      },
+      "Explosiones (por Escape o Admisión)": {
+        "nivel": "fuerte",
+        "comentario": "El combustible no quemado pasa al escape y se enciende después, generando explosiones o petardeos."
+      },
+      "Luces de Advertencia Encendidas": {
+        "nivel": "fuerte",
+        "comentario": "La ECU detecta fallas de encendido y registra códigos P030X o fallas de circuito de bobina."
+      },
+      "No Hay Chispa o Inyección": {
+        "nivel": "fuerte",
+        "comentario": "La bobina es la encargada de generar alto voltaje para la chispa. Si falla, el cilindro afectado queda sin combustión."
+      }
+    },
+    "info": "LÓGICA: Una bobina defectuosa provoca chispa débil o inexistente en uno o varios cilindros. Produce misfire, vibraciones, pérdida de potencia y explosiones en escape por combustible sin quemar. ✅ Puede afectar un solo cilindro."
+  },
+
+  {
+    "nombre": "Convertidor Catalítico",
+    "dtc": "P0420 - P0430",
+    "clave": {
+      "Falta de Potencia / Aceleración Lenta": {
+        "nivel": "fuerte",
+        "comentario": "Un catalizador tapado genera contrapresión en el escape y el motor no puede expulsar gases correctamente. El vehículo se siente ahogado."
+      },
+      "Olor Inusual (Gasolina, Químicos, etc.)": {
+        "nivel": "fuerte",
+        "comentario": "El olor a huevo podrido ocurre por exceso de azufre y mala conversión química dentro del catalizador."
+      },
+      "Consumo Excesivo de Combustible": {
+        "nivel": "debil",
+        "comentario": "El motor trabaja más forzado para expulsar gases y la eficiencia disminuye."
+      },
+      "Motor se Sobrecalienta": {
+        "nivel": "debil",
+        "comentario": "La restricción de escape eleva la temperatura del motor y del propio catalizador."
+      },
+      "Ruidos Metálicos o Golpeteos en el Motor": {
+        "nivel": "debil",
+        "comentario": "Si el panal interno se rompe, pueden escucharse piezas sueltas dentro del catalizador."
+      },
+      "Luces de Advertencia Encendidas": {
+        "nivel": "fuerte",
+        "comentario": "La ECU detecta baja eficiencia del catalizador comparando las señales de las sondas lambda."
+      },
+      "Límite de RPM / Modo de Emergencia": {
+        "nivel": "fuerte",
+        "comentario": "Algunos vehículos limitan potencia o RPM para proteger el motor del exceso de contrapresión y temperatura."
+      }
+    },
+    "info": "LÓGICA: Un catalizador obstruido genera contrapresión en el escape, ahogando el motor especialmente al acelerar o subir pendientes. Produce pérdida severa de potencia y sensación de motor tapado. ✅ El olor a huevo podrido es uno de los síntomas más típicos."
+  },
+
+  {
+    "nombre": "Sensor de Presión de Aceite",
+    "dtc": "P0520 - P0523",
+    "clave": {
+      "Ruidos Metálicos o Golpeteos en el Motor": {
+        "nivel": "medio",
+        "comentario": "Si la presión realmente está baja, el motor pierde lubricación y aparecen golpeteos metálicos de metales trabajando en seco."
+      },
+      "Luces de Advertencia Encendidas": {
+        "nivel": "fuerte",
+        "comentario": "La principal función del sensor es informar la presión de aceite; por eso la luz de aceite es el síntoma más común."
+      },
+      "Baja Presión de Aceite o Combustible": {
+        "nivel": "fuerte",
+        "comentario": "Puede mostrar presión errática, falsa baja presión o activar alarmas aunque la presión real sea normal."
+      }
+    },
+    "info": "LÓGICA: El sensor monitorea la presión de lubricación del motor. Su falla normalmente produce luz de aceite encendida o lecturas erráticas. ✅ Si la baja presión es REAL, pueden aparecer ruidos metálicos por falta de lubricación, pero no es provocado directamente por el sensor."
+  },
+
+  {
+    "nombre": "Sistema VVT (Variable Valve Timing)",
+    "dtc": "P0010 - P0028",
+    "clave": {
+      "Problemas de Arranque": {
+        "nivel": "medio",
+        "comentario": "Si el árbol queda muy adelantado o atrasado, la sincronización de válvulas dificulta la combustión durante el arranque."
+      },
+      "Problemas de Apagado (en marcha o ralentí)": {
+        "nivel": "debil",
+        "comentario": "Puede provocar ralentí inestable o apagones ocasionales, pero normalmente no es la causa principal."
+      },
+      "Falta de Potencia / Aceleración Lenta": {
+        "nivel": "fuerte",
+        "comentario": "La sincronización incorrecta de válvulas reduce llenado y evacuación de cilindros, causando motor pesado y baja respuesta."
+      },
+      "Ralentí Inestable / Motor Tiembla": {
+        "nivel": "medio",
+        "comentario": "El desfase del árbol puede alterar la combustión y provocar pequeñas oscilaciones o vibración en ralentí."
+      },
+      "Vibración Durante la Marcha": {
+        "nivel": "medio",
+        "comentario": "La entrega irregular de potencia puede sentirse como jaloneos suaves o motor áspero."
+      },
+      "Humo Anormal por el Escape": {
+        "nivel": "debil",
+        "comentario": "La combustión ineficiente puede generar algo de humo, pero normalmente no es un síntoma dominante."
+      },
+      "Olor Inusual (Gasolina, Químicos, etc.)": {
+        "nivel": "debil",
+        "comentario": "Puede existir olor a gasolina por combustión incompleta debido al mal tiempo de válvulas."
+      },
+      "Consumo Excesivo de Combustible": {
+        "nivel": "medio",
+        "comentario": "La sincronización incorrecta reduce eficiencia térmica y obliga al motor a consumir más combustible."
+      },
+      "Falla en Frío o Caliente": {
+        "nivel": "fuerte",
+        "comentario": "Muchos sistemas VVT dependen totalmente de presión y viscosidad del aceite; por eso la falla cambia según temperatura."
+      },
+      "Ruidos Metálicos o Golpeteos en el Motor": {
+        "nivel": "fuerte",
+        "comentario": "Los actuadores o faseadores VVT desgastados producen traqueteo metálico especialmente al arrancar."
+      },
+      "Explosiones (por Escape o Admisión)": {
+        "nivel": "medio",
+        "comentario": "El desfase de válvulas puede permitir combustión fuera de tiempo y producir petardeos."
+      },
+      "Luces de Advertencia Encendidas": {
+        "nivel": "fuerte",
+        "comentario": "La ECU detecta diferencias entre posición deseada y real del árbol de levas."
+      },
+      "Límite de RPM / Modo de Emergencia": {
+        "nivel": "medio",
+        "comentario": "Algunos vehículos limitan potencia o RPM para proteger el motor cuando el VVT pierde control."
+      }
+    },
+    "info": "LÓGICA: El VVT modifica el tiempo del árbol de levas usando presión de aceite y control electrónico. Cuando falla, el árbol queda adelantado o atrasado incorrectamente. El síntoma MÁS característico es pérdida de potencia, motor pesado, falla en frío/caliente y traqueteo metálico arriba del motor. En ralentí puede temblar, pero normalmente NO es tan extremo como una IAC, fuga de vacío o falla de encendido. ❌ NO suele causar apagados constantes. ❌ NO suele producir humo fuerte por sí solo. El aceite sucio o baja presión son causas MUY comunes."
+  },
+
+  {
+    "nombre": "Sensor de Velocidad (VSS)",
+    "dtc": "P0500 - P0503",
+    "clave": {
+      "Falta de Potencia / Aceleración Lenta": {
+        "nivel": "debil",
+        "comentario": "Puede sentirse menor rendimiento por cambios incorrectos de transmisión automática, pero NO genera pérdida real de potencia del motor."
+      },
+      "Vibración Durante la Marcha": {
+        "nivel": "debil",
+        "comentario": "Los cambios bruscos o erráticos de caja automática pueden sentirse como pequeños jaloneos."
+      },
+      "Consumo Excesivo de Combustible": {
+        "nivel": "debil",
+        "comentario": "La ECU pierde referencia de velocidad y puede usar estrategias menos eficientes de combustible."
+      },
+      "Luces de Advertencia Encendidas": {
+        "nivel": "fuerte",
+        "comentario": "La ECU detecta ausencia o señal errática de velocidad y activa códigos P0500-P0503."
+      },
+      "Límite de RPM / Modo de Emergencia": {
+        "nivel": "medio",
+        "comentario": "Algunas transmisiones entran en modo seguro y limitan funcionamiento para evitar daños."
+      },
+      "Caja Automática Golpea o Desliza": {
+        "nivel": "fuerte",
+        "comentario": "La transmisión depende del VSS para calcular cambios. Si falla, aparecen golpes, patinaje o cambios incorrectos."
+      },
+      "Fallas en Instrumentos / Componentes Eléctricos No Críticos": {
+        "nivel": "fuerte",
+        "comentario": "El velocímetro, odómetro y control crucero pueden dejar de funcionar o marcar erráticamente."
+      }
+    },
+    "info": "LÓGICA: El VSS informa la velocidad del vehículo a la ECU y transmisión automática. Sus síntomas MÁS importantes son velocímetro errático o muerto, cambios bruscos de caja automática, odómetro incorrecto y control crucero que deja de funcionar. ❌ NO provoca directamente apagados, ralentí inestable, humo, explosiones ni falta severa de potencia del motor. Algunos vehículos pueden entrar en modo de protección o limitar funciones de transmisión."
+  }
+  // ... el resto de tus sensores irían aquí.
+];
    const contenedorSintomas = document.getElementById("sintomas_container");
 
 listaSintomas.sort().forEach(s => {
@@ -339,7 +1108,7 @@ listaSintomas.sort().forEach(s => {
 });
 
 /* ================= LÓGICA DE DIAGNÓSTICO (SUMA) ================= */
-/* ================= LÓGICA DE DIAGNÓSTICO (TOP 2) ================= */
+/* ================= LÓGICA DE DIAGNÓSTICO (TOP 4) - VERSIÓN MEJORADA POR PESO ================= */
 function diagnosticar() {
 
     const seleccionados = [...document.querySelectorAll("input:checked")]
@@ -348,59 +1117,82 @@ function diagnosticar() {
     const resultContainer = document.getElementById("resultado_container");
 
     if (seleccionados.length === 0) {
-
         resultContainer.innerHTML = `
             <div class='alert alert-warning'>
                 Por favor, seleccione al menos un síntoma.
             </div>
         `;
-
         return;
     }
 
     let resultados = [];
 
+    // 📌 ASIGNAMOS PESO SEGÚN TU CLASIFICACIÓN
+    const pesoValor = {
+        "fuerte": 3,
+        "medio": 2,
+        "debil": 1,
+        "nada": 0
+    };
+
     sensores.forEach(s => {
 
-        let puntos = 0;
-        let coincidencias = [];
+        let cantidadCoincidencias = 0;
+        let puntajeTotal = 0;
+        let coincidenciasDetalles = [];
 
         seleccionados.forEach(sel => {
 
-            if (s.clave.includes(sel)) {
+            // ✅ NUEVO FORMATO
+            // s.clave[sel].nivel
+            // s.clave[sel].comentario
 
-                puntos++;
+            if (s.clave.hasOwnProperty(sel)) {
 
-                coincidencias.push(
-                    sel.replaceAll("_", " ")
-                );
+                cantidadCoincidencias++;
 
+                let nivel = s.clave[sel].nivel;
+                let comentario = s.clave[sel].comentario;
+
+                let puntos = pesoValor[nivel] || 0;
+
+                puntajeTotal += puntos;
+
+                coincidenciasDetalles.push({
+                    nombre: sel.replaceAll("_", " "),
+                    nivel: nivel.toUpperCase(),
+                    comentario: comentario,
+                    puntos: puntos
+                });
             }
-
         });
 
-        // SOLO GUARDAR SI COINCIDE
-        if (puntos > 0) {
-
+        if (cantidadCoincidencias > 0) {
             resultados.push({
                 ...s,
-                puntos,
-                coincidencias
+                cantidadCoincidencias,
+                puntajeTotal,
+                coincidenciasDetalles
             });
-
         }
-
     });
 
-    // OBTENER EL MAYOR PUNTAJE
-    const maxPuntos = Math.max(...resultados.map(r => r.puntos));
+    // 📌 ORDENAMOS
+    resultados = resultados.sort((a, b) => {
 
-    // SOLO MOSTRAR LOS QUE TIENEN EL MAYOR PUNTAJE
-    resultados = resultados.filter(r => r.puntos === maxPuntos);
+        if (b.puntajeTotal !== a.puntajeTotal) {
+            return b.puntajeTotal - a.puntajeTotal;
+        }
+
+        return b.cantidadCoincidencias - a.cantidadCoincidencias;
+    });
+
+    // ✅ TOP RESULTADOS
+    const topResultados = resultados.slice(0, 5);
 
     let html = "";
 
-    if (resultados.length === 0) {
+    if (topResultados.length === 0) {
 
         html = `
             <div class='alert alert-danger'>
@@ -412,43 +1204,121 @@ function diagnosticar() {
 
         html = `
             <h5 class="text-info mb-3">
-                Principales sospechosos:
+                🔎 Principales sospechosos ordenados por probabilidad:
             </h5>
         `;
 
-        resultados.forEach(r => {
+        topResultados.forEach((r, index) => {
+
+            let bordeColor, etiqueta;
+
+            switch (index) {
+
+                case 0:
+                    bordeColor = "#28a745";
+                    etiqueta = `<span class="badge bg-success text-white mb-2">✅ 1° MAYOR PROBABILIDAD</span>`;
+                    break;
+
+                case 1:
+                    bordeColor = "#ffc107";
+                    etiqueta = `<span class="badge bg-warning text-dark mb-2">⚠️ 2° OPCIÓN</span>`;
+                    break;
+
+                case 2:
+                    bordeColor = "#17a2b8";
+                    etiqueta = `<span class="badge bg-info text-white mb-2">ℹ️ 3° OPCIÓN</span>`;
+                    break;
+
+                case 3:
+                    bordeColor = "#6c757d";
+                    etiqueta = `<span class="badge bg-secondary text-white mb-2">🔍 4° OPCIÓN</span>`;
+                    break;
+
+                case 4:
+                    bordeColor = "blue";
+                    etiqueta = `<span class="badge bg-primary text-white mb-2">🔍 5° OPCIÓN</span>`;
+                    break;
+            }
 
             html += `
                 <div class="sensor-card"
-                     style="border-left:6px solid #00ffcc">
+                     style="border-left:6px solid ${bordeColor}; padding:15px; margin-bottom:15px; background:#1e1e2e; border-radius:5px">
 
-                    <span class="puntaje-badge">
-                        ${r.puntos} Coincidencias
-                    </span>
+                    ${etiqueta}
 
-                    <h4>${r.nombre}</h4>
+                    <div class="puntaje-badge mb-2">
+                        📊 ${r.cantidadCoincidencias} síntomas coincidentes |
+                        Peso total: <strong>${r.puntajeTotal} pts</strong>
+                    </div>
 
-                    <div class="codigo-dtc">
+                    <h4 class="text-light">${r.nombre}</h4>
+
+                    <div class="codigo-dtc text-info mb-2">
                         Posibles DTC: ${r.dtc}
                     </div>
 
-                    <div class="match-list">
+                    <!-- ✅ MOSTRAR CLAVES + COMENTARIOS -->
+                    <div class="match-list text-light mb-3">
 
-                        <strong>Coincidencias:</strong><br>
+                        <strong>Coincidencias detectadas:</strong><br>
 
-                        ${r.coincidencias.map(c => `
-                            <span>${c}</span>
+                        ${r.coincidenciasDetalles.map(c => `
+
+                            <div style="
+                                background:#27293d;
+                                padding:8px;
+                                border-radius:5px;
+                                margin-bottom:10px;
+                                border-left:4px solid ${
+                                    c.nivel === 'FUERTE'
+                                    ? '#28a745'
+                                    : c.nivel === 'MEDIO'
+                                    ? '#ffc107'
+                                    : '#17a2b8'
+                                };
+                            ">
+
+                                <div>
+                                    🔹 <strong>${c.nombre}</strong>
+                                </div>
+
+                                <div>
+                                    Nivel:
+                                    <strong style="
+                                        color:${
+                                            c.nivel === 'FUERTE'
+                                            ? '#28a745'
+                                            : c.nivel === 'MEDIO'
+                                            ? '#ffc107'
+                                            : '#17a2b8'
+                                        }
+                                    ">
+                                        ${c.nivel}
+                                    </strong>
+                                    (${c.puntos} pts)
+                                </div>
+
+                                <div style="margin-top:5px; color:#d6d6d6;">
+                                    🧠 ${c.comentario}
+                                </div>
+
+                            </div>
+
                         `).join("")}
 
                     </div>
 
-                    <pre>${r.info}</pre>
+                    <pre style="
+                        background:#27293d;
+                        color:#e0e0e0;
+                        padding:8px;
+                        border-radius:4px;
+                        white-space:pre-wrap;
+                    ">${r.info}</pre>
 
                 </div>
             `;
-
         });
-
     }
 
     resultContainer.innerHTML = html;
